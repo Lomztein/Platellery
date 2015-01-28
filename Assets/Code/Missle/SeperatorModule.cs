@@ -3,20 +3,17 @@ using System.Collections;
 
 public class SeperatorModule : Module {
 
-	public float seperationTime;
 	public float seperationForce;
 
 	public override void ActivateModule () {
 
 		if (isActive) {
-			Invoke ("Seperate", seperationTime);
+			Invoke ("Seperate", mods[0].value);
 		}
 
 	}
 
 	void Seperate () {
-
-		Debug.Log ("SEPERATING! :O");
 
 		for (int i = 0; i < childModules.Count; i++) {
 

@@ -152,10 +152,10 @@ public class Planet : MonoBehaviour {
 		return new Vector2 (Mathf.Floor (x), Mathf.Floor (y));
 	}
 
-	public void CreateExplosion (float x, float y, float range, int strength) {
+	public void CreateExplosion (float x, float y, float range, float strength) {
 		List<Chunk> toUpdate = new List<Chunk>();
 
-		int casts = Mathf.Min (strength * 36, 360);
+		int casts = Mathf.Min ((int)strength * 36, 360);
 
 		for (int i = 0; i < casts; i++) {
 

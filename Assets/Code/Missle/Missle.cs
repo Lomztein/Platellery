@@ -13,7 +13,6 @@ public class Missle : MonoBehaviour {
 
 	public void Launch () {
 		BroadcastMessage ("Activate", SendMessageOptions.DontRequireReceiver);
-		CheckModules ();
 		rigidbody.isKinematic = false;
 		rigidbody.mass = Mathf.Max (1, modules.Count);
 	}

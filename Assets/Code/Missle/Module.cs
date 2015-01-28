@@ -15,6 +15,8 @@ public class Module : MonoBehaviour {
 
 	public LineRenderer parentLine;
 
+	public ModuleMod[] mods;
+
 	// Use this for initialization
 	void Start () {
 		if (parentModule) {
@@ -28,7 +30,7 @@ public class Module : MonoBehaviour {
 	public virtual void ModuleStart () {
 	}
 
-	public virtual void BlowUp () {
+	public virtual void DetonateModule () {
 	}
 
 	public virtual void ActivateModule () {
@@ -44,17 +46,11 @@ public class Module : MonoBehaviour {
 			Die ();
 		}
 	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 
 	void FixedUpdate () {
 		if (isActive) ModuleFixedUpdate ();
 
-		float aeroAngle = Angle.CalculateRelativeAngle (transform, transform.position + missle.rigidbody.velocity) - transform.eulerAngles.z;
-		Debug.Log (aeroAngle);
+		// float aeroAngle = Angle.CalculateRelativeAngle (transform, transform.position + missle.rigidbody.velocity) - transform.eulerAngles.z;
 	}
 
 	public virtual void ModuleFixedUpdate () {
@@ -66,7 +62,7 @@ public class Module : MonoBehaviour {
 
 	public void Die () {
 
-		BlowUp ();
+		DetonateModule ();
 		missle.modules.Remove (this);
 		if (parentModule) parentModule.childModules.Remove (this);
 		

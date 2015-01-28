@@ -1,12 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GrenadeModule : WarheadModule {
+public class GrenadeModule : Module {
 
-	public float timer;
+	public float explosionRange;
+	public int explosionStrength;
 
 	public void Arm () {
-		Invoke ("Kill", timer);
+		if (IsInvoking ()) Invoke ("Kill", mods[0].value);
+	}
+
+	public override void ActivateModule () {
+		if (mods[1].ToBool ()) Invoke ("Kill", mods[0].value);
 	}
 
 	void Kill () {
