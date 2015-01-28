@@ -5,6 +5,9 @@ using System.Collections.Generic;
 public class MissleEditor : MonoBehaviour {
 
 	public GameObject[] parts;
+	private Module[] partModules;
+	private int hoveringID;
+
 	public GameObject misslePrefab;
 	public GameObject currentMissle;
 
@@ -35,7 +38,15 @@ public class MissleEditor : MonoBehaviour {
 		ResetEditor ();
 		GetFocusPart (1);
 		InitializePartButtons ();
+		InitializeAssetModuleArray ();
 		current = this;
+	}
+
+	void InitializeAssetModuleArray () {
+		partModules = new Module[parts.Length];
+		for (int i = 0; i < parts.Length ; i++) {
+			partModules[i] = parts[i].GetComponent<Module>();
+		}
 	}
 
 	void GetFocusPart (int index) {
@@ -58,6 +69,8 @@ public class MissleEditor : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
+		hoveringID = -1;
 
 		if (focusModule) {
 			focuserSprite.transform.position = focusModule.transform.position + Vector3.back;
@@ -101,29 +114,38 @@ public class MissleEditor : MonoBehaviour {
 				canPlacePlacingPart = true;
 			}
 
-			if (Input.GetButtonDown ("Fire1")) {
+			if (Input.GetButtonDown ("Mouse1")) {
 				focusModule = focusPart.GetComponent<Module>();
 				if (canPlacePlacingPart) PlacePart ();
 				isDragging = true;
 			}
 
-			if (Input.GetButtonDown ("Fire2")) RemovePart ();
-			if (Input.GetButtonUp ("Fire1") && isDragging) {
+			if (Input.GetButtonDown ("Mouse2")) RemovePart ();
+			if (Input.GetButtonUp ("Mouse1") && isDragging) {
 				Module m = focusPart.GetComponent<Module>();
-				if (focusModule.parentModule) focusModule.parentModule.childModules.Remove (focusModule);
-				focusModule.parentModule = m;
-				m.childModules.Add (focusModule);
+				if (m != focusModule) {
+					if (focusModule.parentModule) focusModule.parentModule.childModules.Remove (focusModule);
+					focusModule.parentModule = m;
+					m.childModules.Add (focusModule);
+					focusModule.OnParentUpdate ();
+				}
 				isDragging = false;
 			}
 
-			if (Input.GetButton ("Fire1")) {
-				if (focusModule.parentLine) focusModule.parentLine.SetPosition (1, focusPart.transform.position + Vector3.back);
+			if (focusModule) {
+				if (Input.GetButton ("Mouse1")) {
+					if (focusModule.parentLine) focusModule.parentLine.SetPosition (1, focusPart.transform.position + Vector3.back);
+				}else{
+					if (focusModule.parentLine) focusModule.parentLine.SetPosition (1, focusModule.parentModule.transform.position);
+				}
 			}
 
 			placementAngle += Mathf.RoundToInt (Input.GetAxis ("Mouse ScrollWheel") * 10);
 		}
 
-		if (!Input.GetButton ("Fire1"))
+		if (Input.GetButtonDown ("Mouse2")) focusModule = null;
+
+		if (!Input.GetButton ("Mouse1"))
 			isDragging = false;
 
 		if (placingPartID == -1) {
@@ -206,14 +228,22 @@ public class MissleEditor : MonoBehaviour {
 		GUI.skin = skin;
 		if (editorCamera.gameObject.activeInHierarchy) {
 			for (int i = 0; i < buttons.Length; i++) {
-				if (GUI.Button (new Rect (Screen.width - 80, 20 + 80 * i, 60, 60), "", skin.customStyles[0])) 
+				Rect r = new Rect (Screen.width - 80, 20 + 80 * i, 60, 60);
+
+				if (GUI.Button (r, "", skin.customStyles[0])) 
 					GetFocusPart (i);
+				if (r.Contains (new Vector3 (Input.mousePosition.x, -Input.mousePosition.y + Screen.height, 0)))
+					hoveringID = i;
+
 				GUI.DrawTexture (new Rect (Screen.width - 70, 30 + 80 * i, 40, 40), buttons[i], ScaleMode.ScaleToFit, true, 0);
 			}
 			if (GUI.Button (new Rect (Screen.width / 3, Screen.height - 100, Screen.width / 3, 50), "LAUNCH!", skin.customStyles[0])) LaunchMissle ();
 			if (GUI.Button (new Rect (20, 20, 200, 60), "BACK", skin.customStyles[0])) CloseEditor ();
 
-			if (focusModule) {
+			if (hoveringID > -1) {
+				partModules[hoveringID].DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));
+			}else if (focusModule) {
+				focusModule.DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));
 				for (int i = 0 ; i <focusModule.mods.Length ; i++) {
 					focusModule.mods[i].Draw (new Rect (240, 20 + i * 30, Screen.width - 340, 20));
 				}

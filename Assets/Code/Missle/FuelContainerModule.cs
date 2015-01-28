@@ -7,8 +7,11 @@ public class FuelContainerModule : Module {
 
 	public FuelContainerModule parentFuel;
 
-	public override void ModuleStart () {
+	public override void OnParentUpdate () {
 		parentFuel = parentModule.GetComponent<FuelContainerModule>();
+	}
+
+	public override void ModuleStart () {
 		fuel = mods[0].value;
 	}
 

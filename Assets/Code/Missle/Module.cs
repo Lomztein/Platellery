@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 public class Module : MonoBehaviour {
 
+	public string moduleName;
+	public string moduleDesc;
+
 	public Missle missle;
 	public Module parentModule;
 	public List<Module> childModules;
@@ -36,9 +39,13 @@ public class Module : MonoBehaviour {
 	public virtual void ActivateModule () {
 	}
 
+	public virtual void OnParentUpdate () {
+	}
+
 	public void Activate () {
 		isActive = true;
 		ActivateModule ();
+		if (parentModule) OnParentUpdate ();
 	}
 
 	void Collide (Collision col) {
@@ -74,6 +81,7 @@ public class Module : MonoBehaviour {
 			}
 		}
 
+		missle.CheckModules ();
 		Destroy (gameObject);
 	}
 
@@ -81,18 +89,26 @@ public class Module : MonoBehaviour {
 		GameObject newM = (GameObject)Instantiate (MissleEditor.current.misslePrefab, transform.position, transform.rotation);
 		newM.rigidbody.isKinematic = false;
 		newM.rigidbody.velocity = missle.rigidbody.velocity;
+		missle.modules.Remove (this);
 		missle = newM.GetComponent<Missle>();
 		missle.Launch ();
-		SyncMissleToMasterParent (missle);
+		SyncMissleToMasterParent (missle, this);
 	}
 
-	void SyncMissleToMasterParent (Missle m) {
+	void SyncMissleToMasterParent (Missle m, Module start) {
 		missle.modules.Remove (this);
 		missle = m;
 		missle.modules.Add (this);
 		transform.parent = m.transform;
 		for (int i = 0 ; i < childModules.Count; i++) {
-			childModules[i].SyncMissleToMasterParent (m);
+			if (childModules[i] != start) childModules[i].SyncMissleToMasterParent (m, start);
 		}
+	}
+
+	public void DrawModuleDescription (Rect rect) {
+		// Window, header and description.
+		GUI.Label (rect,"", GUI.skin.customStyles[0]);
+		GUI.Label (new Rect (rect.x + 20, rect.y + 20, rect.width - 40, 20),moduleName, GUI.skin.customStyles[1]);
+		GUI.Label (new Rect (rect.x + 20, rect.y + 50, rect.width - 40, rect.height - 70),moduleDesc, GUI.skin.customStyles[2]);
 	}
 }

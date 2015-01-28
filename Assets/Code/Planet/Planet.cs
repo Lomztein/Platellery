@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class Planet : MonoBehaviour {
 
 	public Tile[] tileTypes;
+	public Dictionary<string, int> tile = new Dictionary<string, int>();
 
 	public int radius;
 	public int chunkResolution;
@@ -27,7 +28,14 @@ public class Planet : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		current = this;
+		InitializeTileDictionary ();
 		InitializePlanet ();
+	}
+
+	void InitializeTileDictionary () {
+		for (int i = 0 ; i < tileTypes.Length ; i++) {
+			tile.Add (tileTypes[i].name, i);
+		}
 	}
 
 	void GenerateTextureAtlas () {
@@ -94,17 +102,19 @@ public class Planet : MonoBehaviour {
 
 				float distance = Vector3.Distance (new Vector3 (x,y), center) * Chunk.scale;
 
-				tiles[x,y] = 1;
+				tiles[x,y] = tile["Stone"];
 
 				// Generate edge
-				if (distance > radius - 5 && Random.Range (0,(int)distance - radius) == 0) tiles[x,y] = 2;
-				if (distance > (float)radius - 0.1f) tiles[x,y] = 0;
+				if (distance > radius - 5) tiles[x,y] = tile["Dirt"];
+				if (distance > radius - 10 && Random.Range (0,(int)distance - radius) == 0) tiles[x,y] = tile["Dirt"];
+				if (distance > radius - 5 && Random.Range (0,(int)distance - radius) == 0) tiles[x,y] = tile["Grass"];
+				if (distance > (float)radius - 0.1f) tiles[x,y] = tile["Air"];
 
 				// Generate core
 				float perlinScale = 5f;
-				if (Mathf.PerlinNoise ((float)x / perlinScale,(float)y / perlinScale) > distance/(float)radius + 0.2f) tiles[x,y] = 3;
-				if (distance < radius / 3) tiles[x,y] = 3;
-				if (distance < radius / 5) tiles[x,y] = 4;
+				if (Mathf.PerlinNoise ((float)x / perlinScale,(float)y / perlinScale) > distance/(float)radius + 0.2f) tiles[x,y] = tile["Lava"];
+				if (distance < radius / 3) tiles[x,y] = tile["Lava"];
+				if (distance < radius / 5) tiles[x,y] = tile["Magma"];
 			}
 		}
 	}
@@ -177,7 +187,15 @@ public class Planet : MonoBehaviour {
 						for (int j = 0; j < nearby.Length; j++) {
 							Chunk cc = GetChunk ((int)locPos.x + (int)nearby[j].x,(int)locPos.y + (int)nearby[j].y);
 							if (cc) cc.UpdateCollider ((int)locPos.x + (int)nearby[j].x,(int)locPos.y + (int)nearby[j].y);
+							for (int a = 0; a < nearby.Length; a++) {
+								int xx = (int)(locPos.x + nearby[a].x);
+								int yy = (int)(locPos.y + nearby[a].y);
+								Tile t = GetTileType (xx,yy);
+								if (t != null) if (t.destroyedName != "") if (Random.Range (0,4) == 0) tiles[xx,yy] = tile[t.destroyedName];
+							}
 						}
+					}else{
+						if (GetTileType ((int)locPos.x, (int)locPos.y).destroyedName != "") tiles[(int)locPos.x, (int)locPos.y] = tile[GetTileType ((int)locPos.x, (int)locPos.y).destroyedName];
 					}
 				}
 			}
