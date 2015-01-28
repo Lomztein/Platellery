@@ -6,18 +6,16 @@ public class Missle : MonoBehaviour {
 
 	public List<Module> modules;
 
-	void Start () {
-
-	}
-
-	// Update is called once per frame
-	void Update () {
-		// if (modules.Count == 0) Destroy (gameObject);
+	void FixedUpdate () {
+		if (!rigidbody.isKinematic) 
+			rigidbody.velocity += Planet.current.GetPositionalGravity (transform.position) * Time.fixedDeltaTime;
 	}
 
 	public void Launch () {
-		BroadcastMessage ("Activate");
+		BroadcastMessage ("Activate", SendMessageOptions.DontRequireReceiver);
+		CheckModules ();
 		rigidbody.isKinematic = false;
+		rigidbody.mass = Mathf.Max (1, modules.Count);
 	}
 
 	public void SeperateSeperators () {
@@ -26,7 +24,11 @@ public class Missle : MonoBehaviour {
 		}
 	}
 
+	public void CheckModules () {
+		if (modules.Count == 0) Destroy (gameObject);
+	}
+
 	void OnCollisionEnter (Collision col) {
-		col.contacts[0].thisCollider.SendMessage ("Collide", col);
+		col.contacts[0].thisCollider.SendMessage ("Collide", col, SendMessageOptions.DontRequireReceiver);
 	}
 }

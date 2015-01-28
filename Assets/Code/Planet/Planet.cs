@@ -139,13 +139,6 @@ public class Planet : MonoBehaviour {
 		return null;
 	}
 
-	void Update () {
-		if (Input.GetButtonDown ("Fire1")) {
-			Vector2 pos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
-			CreateExplosion (pos.x, pos.y, 10, 5);
-		}
-	}
-
 	void AddRandomizedProps () {
 
 	}

@@ -10,6 +10,7 @@ public class GrenadeModule : WarheadModule {
 	}
 
 	void Kill () {
-		Destroy (gameObject);
+		Planet.current.CreateExplosion (transform.position.x, transform.position.y, explosionRange, explosionStrength);
+		Die ();
 	}
 }

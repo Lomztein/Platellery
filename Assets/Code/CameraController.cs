@@ -8,6 +8,8 @@ public class CameraController : MonoBehaviour {
 
 	private float distanceToCenter;
 
+	public Transform followingMissle;
+
 	// Use this for initialization
 	void Start () {
 	}
@@ -20,22 +22,26 @@ public class CameraController : MonoBehaviour {
 	void Move () {
 		Vector3 movement = Vector3.zero;
 
-		// Horizontal movement
-		if (Input.mousePosition.x < 10) {
-			movement.x = -moveSpeed * Time.deltaTime;
-		}else if (Input.mousePosition.x > Screen.width - 10) {
-			movement.x = moveSpeed * Time.deltaTime;
-		}
+		if (followingMissle) {
+			transform.position = followingMissle.position + Vector3.back * 10;
+		}else{
+			// Horizontal movement
+			if (Input.mousePosition.x < 10) {
+				movement.x = -moveSpeed * Time.deltaTime;
+			}else if (Input.mousePosition.x > Screen.width - 10) {
+				movement.x = moveSpeed * Time.deltaTime;
+			}
 
-		// Vertical movement
-		if (Input.mousePosition.y < 10) {
-			distanceToCenter -= moveSpeed * Time.deltaTime;
-		}else if (Input.mousePosition.y > Screen.height - 10) {
-			distanceToCenter += moveSpeed * Time.deltaTime;
-		}
+			// Vertical movement
+			if (Input.mousePosition.y < 10) {
+				distanceToCenter -= moveSpeed * Time.deltaTime;
+			}else if (Input.mousePosition.y > Screen.height - 10) {
+				distanceToCenter += moveSpeed * Time.deltaTime;
+			}
 
-		movement.y = -(Vector3.Distance (transform.position - transform.forward * transform.position.z, focusPlanet.center) - distanceToCenter);
-		if (distanceToCenter < camera.orthographicSize) distanceToCenter = camera.orthographicSize;
+			movement.y = -(Vector3.Distance (transform.position - transform.forward * transform.position.z, focusPlanet.center) - distanceToCenter);
+			if (distanceToCenter < camera.orthographicSize) distanceToCenter = camera.orthographicSize;
+		}
 
 		// Put movement in action
 		transform.rotation = Quaternion.LookRotation (Vector3.forward, transform.position - transform.forward * transform.position.z - focusPlanet.center);
@@ -47,5 +53,9 @@ public class CameraController : MonoBehaviour {
 		focusPlanet = newPlanet;
 		distanceToCenter = focusPlanet.radius + camera.orthographicSize / 2;
 		transform.position = focusPlanet.center + Vector3.up * distanceToCenter + Vector3.one / 2 + Vector3.back * 10;
+	}
+
+	public void FollowMissle (Transform missle) {
+		followingMissle = missle;
 	}
 }
