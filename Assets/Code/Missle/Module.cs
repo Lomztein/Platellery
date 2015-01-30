@@ -25,6 +25,7 @@ public class Module : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		ModuleStart ();
 		if (parentModule) {
 			parentLine = GetComponent<LineRenderer>();
 			parentLine.SetPosition (0, transform.position + Vector3.back);
@@ -45,6 +46,9 @@ public class Module : MonoBehaviour {
 	public virtual void OnParentUpdate () {
 	}
 
+	public virtual void EditorFixedUpdate () {
+	}
+
 	public void Activate () {
 		isActive = true;
 		ActivateModule ();
@@ -58,7 +62,11 @@ public class Module : MonoBehaviour {
 	}
 
 	void FixedUpdate () {
-		if (isActive) ModuleFixedUpdate ();
+		if (isActive) {
+			ModuleFixedUpdate ();
+		}else{
+			EditorFixedUpdate ();
+		}
 
 		if (Platellery.game.activeMissles.Count > 0) if (gameObject == Platellery.game.activeMissles[0]) {
 			float dif = Vector3.Angle(missle.rigidbody.velocity, missle.transform.up);
@@ -100,6 +108,7 @@ public class Module : MonoBehaviour {
 		newM.rigidbody.velocity = missle.rigidbody.velocity;
 		missle.modules.Remove (this);
 		missle = newM.GetComponent<Missle>();
+		missle.inEditor = false;
 		missle.Launch ();
 		SyncMissleToMasterParent (missle, this);
 	}

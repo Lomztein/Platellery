@@ -6,6 +6,7 @@ public class Missle : MonoBehaviour {
 
 	public List<Module> modules;
 	public Transform velTransform;
+	public bool inEditor = true;
 
 	void FixedUpdate () {
 		if (!rigidbody.isKinematic) 

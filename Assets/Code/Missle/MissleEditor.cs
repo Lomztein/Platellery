@@ -182,7 +182,6 @@ public class MissleEditor : MonoBehaviour {
 		}
 
 		focusModule.missle.modules.Add (focusModule);
-		focusModule.ModuleStart ();
 	}
 	
 	void RemovePart () {
@@ -217,9 +216,11 @@ public class MissleEditor : MonoBehaviour {
 	
 	public void LaunchMissle () {
 		GameObject newMissle = (GameObject)Instantiate (currentMissle, new Vector3 (Planet.current.radius, Planet.current.radius * 2 + 0.25f + GetMissleBounds ().y, 0), Quaternion.identity);
-		editorCamera.gameObject.SetActive (false);
 		Camera.main.GetComponent<CameraController>().FollowMissle (newMissle.transform);
-		newMissle.GetComponent<Missle>().Invoke ("Launch", 2);
+		Missle m = newMissle.GetComponent<Missle>();
+		m.Invoke ("Launch", 2);
+		CloseEditor ();
+		m.inEditor = false;
 	}
 
 	Vector2 GetMissleBounds () {
@@ -252,6 +253,7 @@ public class MissleEditor : MonoBehaviour {
 			}
 			if (GUI.Button (new Rect (Screen.width / 3, Screen.height - 100, Screen.width / 3, 50), "LAUNCH!", skin.customStyles[0])) LaunchMissle ();
 			if (GUI.Button (new Rect (20, 20, 200, 60), "BACK", skin.customStyles[0])) CloseEditor ();
+			if (GUI.Button (new Rect (20, 100, 100, 30), "CLEAR", skin.customStyles[0])) ResetEditor ();
 
 			if (hoveringID > -1) {
 				partModules[hoveringID].DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));

@@ -40,7 +40,7 @@ public class Planet : MonoBehaviour {
 	}
 
 	void Randomize () {
-		temperature = Random.Range (-10, 50);
+		temperature = Random.Range (-5, 200);
 	}
 
 	void InitializeTileDictionary () {

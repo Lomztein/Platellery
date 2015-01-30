@@ -14,8 +14,10 @@ public class ThrusterModule : Module {
 		fuelContainer = parentModule.GetComponent<FuelContainerModule>();
 	}
 
-	public override void ActivateModule () {
-		isThrusting = mods[1].ToBool ();
+	public override void EditorFixedUpdate () {
+		if (missle.inEditor) isThrusting = mods[1].ToBool ();
+		if (isThrusting) StartParticles ();
+		if (!isThrusting) StopParticles ();
 	}
 
 	void Toggle () {
@@ -33,16 +35,15 @@ public class ThrusterModule : Module {
 	}
 
 	public override void ModuleFixedUpdate () {
-		
+
+		isThrusting = mods[1].ToBool ();
 		if (fuelContainer) {
 			if (isThrusting) {
 				if (fuelContainer.fuel > 0) {
-					if (isActive) {
-						missle.rigidbody.AddForceAtPosition (thrustVector.up * thrust * (mods[0].value/100f) * Time.fixedDeltaTime, transform.position);
-						fuelContainer.fuel -= Time.fixedDeltaTime * (mods[0].value/100f);
-						StartParticles ();
-						return;
-					}
+					missle.rigidbody.AddForceAtPosition (thrustVector.up * thrust * (mods[0].value/100f) * Time.fixedDeltaTime, transform.position);
+					fuelContainer.fuel -= Time.fixedDeltaTime * (mods[0].value/100f);
+					StartParticles ();
+					return;
 				}
 			}
 		}

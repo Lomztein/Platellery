@@ -72,6 +72,9 @@ public class Platellery : MonoBehaviour {
 			if (GUI.Button (new Rect (Screen.width / 3, Screen.height / 2 - 50, Screen.width / 3, 100), "YOU HAVE FAILED.\nRESTART?"))
 				Application.LoadLevel (Application.loadedLevel);
 		}
-		if (!editorCamera.activeInHierarchy) if (GUI.Button (new Rect (20, 20, 200, 60), "EDITOR", skin.customStyles[0])) editor.OpenEditor ();
+		if (!editorCamera.activeInHierarchy) {
+			if (GUI.Button (new Rect (20, 20, 200, 60), "EDITOR", skin.customStyles[0])) editor.OpenEditor ();
+			if (GUI.Button (new Rect (Screen.width - 140, 20, 120, 30), "RESTART", skin.customStyles[0])) Application.LoadLevel (Application.loadedLevel);
+		}
 	}
 }
