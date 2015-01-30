@@ -28,9 +28,8 @@ public class Planet : MonoBehaviour {
 	public Vector2[] nearby;
 
 	public static Planet current;
-
-	public Transform moon;
-	public float moonDistance;
+		
+	public GameObject explosionPrefab;
 
 	// Use this for initialization
 	void Start () {
@@ -41,12 +40,7 @@ public class Planet : MonoBehaviour {
 	}
 
 	void Randomize () {
-		temperature = Random.Range (-5, 100);
-		radius = Random.Range (25, 75);
-	}
-
-	void Update () {
-		moon.position = center + new Vector3 (Mathf.Cos (Time.time / 4) * moonDistance, Mathf.Sin (Time.time / 4) * moonDistance);
+		temperature = Random.Range (-10, 50);
 	}
 
 	void InitializeTileDictionary () {
@@ -185,15 +179,24 @@ public class Planet : MonoBehaviour {
 	}
 
 	public void ChangeSingleTile (int x, int y, int newType) {
-		tiles[x,y] = newType;
-		GetChunk (x,y).GenerateMesh ();
+		if (IsTileInsidePlanet (x,y)) {
+			tiles[x,y] = newType;
+			GetChunk (x,y).GenerateMesh ();
+		}
 	}
 
 	Vector2 FloorCoordinates (float x, float y) {
 		return new Vector2 (Mathf.Floor (x), Mathf.Floor (y));
 	}
 
+	public static void CreateExplosionEffect (float x, float y, float size) {
+		GameObject ex = (GameObject)Instantiate (Planet.current.explosionPrefab, new Vector3 (x,y), Quaternion.identity);
+		ex.GetComponent<Explosion>().size = size;
+	}
+
 	public void CreateExplosion (float x, float y, float range, float strength) {
+		CreateExplosionEffect (x,y,range);
+
 		List<Chunk> toUpdate = new List<Chunk>();
 
 		int casts = Mathf.Min ((int)strength * 36, 360);
@@ -206,6 +209,7 @@ public class Planet : MonoBehaviour {
 			if (Physics.Raycast (ray, out hit, range)) {
 
 				Debug.DrawLine (ray.origin, hit.point, Color.white, 1f);
+				hit.collider.SendMessage ("TakeDamage", strength, SendMessageOptions.DontRequireReceiver);
 
 				Vector2 locPos = SceneToTilePosition (hit.transform.position);
 				if (IsTileInsidePlanet ((int)locPos.x, (int)locPos.y)) {
@@ -234,16 +238,6 @@ public class Planet : MonoBehaviour {
 
 		for (int i = 0; i < toUpdate.Count ; i++) {
 			toUpdate[i].GenerateMesh ();
-		}
-	}
-
-	void OnDrawGizmos () {
-		if (Application.isPlaying) {
-			Vector2 pos = SceneToTilePosition (Camera.main.ScreenToWorldPoint (Input.mousePosition));
-			if (IsTileInsidePlanet ((int)pos.x, (int)pos.y)) {
-				Gizmos.DrawSphere (new Vector3 (pos.x, pos.y), 0.5f);
-				Gizmos.DrawWireCube (GetChunk ((int)pos.x,(int)pos.y).center, Vector3.one * Chunk.size);
-			}
 		}
 	}
 }

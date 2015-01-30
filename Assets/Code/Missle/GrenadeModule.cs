@@ -7,7 +7,7 @@ public class GrenadeModule : Module {
 	public int explosionStrength;
 
 	public void Arm () {
-		if (IsInvoking ()) Invoke ("Kill", mods[0].value);
+		if (!IsInvoking ()) Invoke ("Kill", mods[0].value);
 	}
 
 	public override void ActivateModule () {

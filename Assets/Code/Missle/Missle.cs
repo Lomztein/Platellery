@@ -20,7 +20,19 @@ public class Missle : MonoBehaviour {
 	public void Launch () {
 		BroadcastMessage ("Activate", SendMessageOptions.DontRequireReceiver);
 		rigidbody.isKinematic = false;
-		rigidbody.mass = Mathf.Max (1, modules.Count);
+		Platellery.OnMissleSpawned (gameObject);
+
+		float mass = 0;
+		for (int i = 0; i < modules.Count; i++) {
+			if (modules[i].moduleType != Module.Type.Structural) {
+				mass += 1;
+			}else{
+				mass += 0.2f;
+			}
+			Destroy (modules[i].GetComponent<LineRenderer>());
+		}
+
+		if (modules.Count > 0) rigidbody.mass = mass;
 	}
 
 	public void SeperateSeperators () {
@@ -35,5 +47,9 @@ public class Missle : MonoBehaviour {
 
 	void OnCollisionEnter (Collision col) {
 		col.contacts[0].thisCollider.SendMessage ("Collide", col, SendMessageOptions.DontRequireReceiver);
+	}
+
+	void OnDestroy () {
+		Platellery.game.activeMissles.Remove (gameObject);
 	}
 }

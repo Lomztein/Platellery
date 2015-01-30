@@ -3,6 +3,7 @@ using System.Collections;
 
 public class FuelContainerModule : Module {
 
+	private float startFuel;
 	public float fuel;
 
 	public FuelContainerModule parentFuel;
@@ -13,6 +14,7 @@ public class FuelContainerModule : Module {
 
 	public override void ModuleStart () {
 		fuel = mods[0].value;
+		startFuel = mods[0].value;
 	}
 
 	public override void ModuleFixedUpdate () {
@@ -20,8 +22,9 @@ public class FuelContainerModule : Module {
 		if (fuel < mods[0].value) {
 
 			if (parentFuel) if (parentFuel.fuel > 0) {
-				fuel += Time.deltaTime;
-				parentFuel.fuel -= Time.deltaTime;
+				float f = Mathf.Max  (startFuel-fuel, parentFuel.fuel);
+				fuel += f;
+				parentFuel.fuel -= f;
 			}
 		}
 	}

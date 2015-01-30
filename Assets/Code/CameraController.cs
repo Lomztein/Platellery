@@ -31,6 +31,7 @@ public class CameraController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		if (Input.GetButtonDown ("Escape")) followingMissle = null;
 		Move ();
 	}
 
@@ -40,23 +41,26 @@ public class CameraController : MonoBehaviour {
 		
 		if (followingMissle) {
 			targetPos = followingMissle.position + Vector3.back * 10;
-		}else if (!MissleEditor.current.editorCamera.gameObject.activeInHierarchy) {
+		}
+		if (!MissleEditor.current.editorCamera.gameObject.activeInHierarchy) {
 			// Horizontal movement
-			if (Input.mousePosition.x < 10) {
-				movement.x = -moveSpeed * Time.deltaTime;
-			}else if (Input.mousePosition.x > Screen.width - 10) {
-				movement.x = moveSpeed * Time.deltaTime;
-			}
+				if (!followingMissle) {
+				if (Input.mousePosition.x < 10) {
+					movement.x = -moveSpeed * Time.deltaTime;
+				}else if (Input.mousePosition.x > Screen.width - 10) {
+					movement.x = moveSpeed * Time.deltaTime;
+				}
 
-			// Vertical movement
-			if (Input.mousePosition.y < 10) {
-				distanceToCenter -= moveSpeed * Time.deltaTime;
-			}else if (Input.mousePosition.y > Screen.height - 10) {
-				distanceToCenter += moveSpeed * Time.deltaTime;
+				// Vertical movement
+				if (Input.mousePosition.y < 10) {
+					distanceToCenter -= moveSpeed * Time.deltaTime;
+				}else if (Input.mousePosition.y > Screen.height - 10) {
+					distanceToCenter += moveSpeed * Time.deltaTime;
+				}
+				movement.y = -(Vector3.Distance (targetPos, focusPlanet.center) - distanceToCenter);
 			}
 
 			zoomFactor += Input.GetAxis ("Mouse ScrollWheel");
-			movement.y = -(Vector3.Distance (targetPos, focusPlanet.center) - distanceToCenter);
 			if (distanceToCenter < 15) distanceToCenter = 15;
 		}
 		zoomFactor = Mathf.Clamp (zoomFactor, 0.01f,0.99f);

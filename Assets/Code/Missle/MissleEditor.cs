@@ -20,6 +20,7 @@ public class MissleEditor : MonoBehaviour {
 	private Vector3 placementPos;
 	private int placementAngle;
 	private bool isDragging;
+	private int isFlipped;
 
 	private GameObject focusPart;
 	private Module focusModule;
@@ -32,6 +33,7 @@ public class MissleEditor : MonoBehaviour {
 	public GUISkin skin;
 
 	public LayerMask missleLayer;
+	public GameObject canvas;
 
 	// Use this for initialization
 	void Start () {
@@ -40,6 +42,7 @@ public class MissleEditor : MonoBehaviour {
 		InitializePartButtons ();
 		InitializeAssetModuleArray ();
 		current = this;
+		CloseEditor ();
 	}
 
 	void InitializeAssetModuleArray () {
@@ -64,6 +67,7 @@ public class MissleEditor : MonoBehaviour {
 		currentMissle.GetComponent<Missle>().modules.Add (f.GetComponent<Module>());
 		f.transform.parent = currentMissle.transform;
 		f.GetComponent<Module>().missle = currentMissle.GetComponent<Missle>();
+		f.GetComponent<Module>().ActivateModule ();
 		currentParts.Add (f);
 	}
 	
@@ -83,6 +87,12 @@ public class MissleEditor : MonoBehaviour {
 
 		Ray ray = editorCamera.ScreenPointToRay (Input.mousePosition);
 		RaycastHit hit;
+
+		if (Input.GetButtonDown ("Up")) placementAngle = 0;
+		if (Input.GetButtonDown ("Down")) placementAngle = 2;
+		if (Input.GetButtonDown ("Left")) placementAngle = 1;
+		if (Input.GetButtonDown ("Right")) placementAngle = 3;
+		if (Input.GetButtonDown ("Mirror")) if (isFlipped == 0) { isFlipped = 1; }else{ isFlipped = 0; }
 
 		if (Physics.Raycast (ray, out hit, 20f)) {
 			focusPart = hit.collider.gameObject;
@@ -107,7 +117,7 @@ public class MissleEditor : MonoBehaviour {
 
 			placementPos = focusPart.transform.position + pos;
 			placingPartSprite.transform.position = placementPos;
-			placingPartSprite.transform.rotation = Quaternion.Euler (0,0,placementAngle * 90);
+			placingPartSprite.transform.rotation = Quaternion.Euler (0,isFlipped * 180,placementAngle * 90);
 
 			if (!Physics.Raycast (new Ray (placementPos + Vector3.back * 5, Vector3.forward), 10, missleLayer)) {
 				Debug.DrawRay (placementPos + Vector3.back * 5, Vector3.forward * 20, Color.white, 0.02f);
@@ -160,7 +170,7 @@ public class MissleEditor : MonoBehaviour {
 	}
 
 	void PlacePart () {
-		GameObject newPart = (GameObject)Instantiate (parts[placingPartID], placementPos, Quaternion.Euler (0,0,placementAngle * 90));
+		GameObject newPart = (GameObject)Instantiate (parts[placingPartID], placementPos, Quaternion.Euler (0,isFlipped * 180,placementAngle * 90));
 		currentParts.Add (newPart);
 		focusModule = newPart.GetComponent<Module>();
 		focusModule.missle = currentMissle.GetComponent<Missle>();
@@ -195,10 +205,14 @@ public class MissleEditor : MonoBehaviour {
 
 	public void OpenEditor () {
 		editorCamera.gameObject.SetActive (true);
+		enabled = true;
+		canvas.SetActive (false);
 	}
 
 	public void CloseEditor () {
 		editorCamera.gameObject.SetActive (false);
+		enabled = false;
+		canvas.SetActive (true);
 	}
 	
 	public void LaunchMissle () {
@@ -220,7 +234,6 @@ public class MissleEditor : MonoBehaviour {
 			if (loc.y < min.y) min.y = loc.y;
 		}
 
-		Debug.Log (max + ", " + min + ", " + (max - min));
 		return max - min + Vector2.one * 0.5f;
 	}
 
@@ -248,9 +261,6 @@ public class MissleEditor : MonoBehaviour {
 					focusModule.mods[i].Draw (new Rect (240, 20 + i * 30, Screen.width - 340, 20));
 				}
 			}
-			
-		}else{
-			if (GUI.Button (new Rect (20, 20, 200, 60), "EDITOR", skin.customStyles[0])) OpenEditor ();
 		}
 	}
 

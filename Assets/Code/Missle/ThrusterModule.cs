@@ -28,7 +28,7 @@ public class ThrusterModule : Module {
 
 	void Update () {
 		par.startSpeed = 25 * (mods[0].value/100f);
-		par.emissionRate = 750 * (mods[0].value/100f);
+		par.emissionRate = 100 * (mods[0].value/100f);
 		thrustVector.transform.localRotation = Quaternion.Euler (0,0,mods[2].value);
 	}
 

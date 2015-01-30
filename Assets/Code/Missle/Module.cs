@@ -4,8 +4,11 @@ using System.Collections.Generic;
 
 public class Module : MonoBehaviour {
 
+	public enum Type { FuelContainer, Thruster, Warhead, Grenade, Seperator, Activator, Structural };
+
 	public string moduleName;
 	public string moduleDesc;
+	public Type moduleType;
 
 	public Missle missle;
 	public Module parentModule;
@@ -57,10 +60,10 @@ public class Module : MonoBehaviour {
 	void FixedUpdate () {
 		if (isActive) ModuleFixedUpdate ();
 
-		if (parentModule == null) {
+		if (Platellery.game.activeMissles.Count > 0) if (gameObject == Platellery.game.activeMissles[0]) {
 			float dif = Vector3.Angle(missle.rigidbody.velocity, missle.transform.up);
 			float cpScale = (((dif -90) - 90)/ 720) - 0.125f;
-			// Debug.Log (cpScale);
+			Debug.Log (cpScale);
 		}
 
 	}
@@ -87,6 +90,7 @@ public class Module : MonoBehaviour {
 		}
 
 		missle.CheckModules ();
+		Planet.CreateExplosionEffect (transform.position.x, transform.position.y, 0.5f);
 		Destroy (gameObject);
 	}
 
