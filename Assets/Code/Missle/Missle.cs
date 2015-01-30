@@ -5,10 +5,16 @@ using System.Collections.Generic;
 public class Missle : MonoBehaviour {
 
 	public List<Module> modules;
+	public Transform velTransform;
 
 	void FixedUpdate () {
 		if (!rigidbody.isKinematic) 
 			rigidbody.velocity += Planet.current.GetPositionalGravity (transform.position) * Time.fixedDeltaTime;
+
+		rigidbody.drag = Planet.current.atmosphere.GetDensity (Planet.current.atmosphere.PositionToAltitude01 (transform.position));
+		if (rigidbody.velocity.magnitude > 0.1f) {
+			velTransform.forward = rigidbody.velocity.normalized;
+		}
 	}
 
 	public void Launch () {

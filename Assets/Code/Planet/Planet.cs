@@ -17,6 +17,10 @@ public class Planet : MonoBehaviour {
 
 	public Vector3 center;
 	public float gravity;
+	public float temperature;
+	public Atmosphere atmosphere;
+	public Generator generator;
+	public Transform atmos;
 
 	private Texture2D tileAtlas;
 	public static int textureSize = 16;
@@ -25,17 +29,52 @@ public class Planet : MonoBehaviour {
 
 	public static Planet current;
 
+	public Transform moon;
+	public float moonDistance;
+
 	// Use this for initialization
 	void Start () {
 		current = this;
+		Randomize ();
 		InitializeTileDictionary ();
 		InitializePlanet ();
+	}
+
+	void Randomize () {
+		temperature = Random.Range (-5, 100);
+		radius = Random.Range (25, 75);
+	}
+
+	void Update () {
+		moon.position = center + new Vector3 (Mathf.Cos (Time.time / 4) * moonDistance, Mathf.Sin (Time.time / 4) * moonDistance);
 	}
 
 	void InitializeTileDictionary () {
 		for (int i = 0 ; i < tileTypes.Length ; i++) {
 			tile.Add (tileTypes[i].name, i);
 		}
+	}
+
+	void GenerateAtmosphereTexture () {
+		atmos.position = center + Vector3.forward;
+		atmos.localScale = Vector3.one * (radius + atmosphere.altitude) * 2;
+
+		int size = 1024;
+
+		Texture2D tex = new Texture2D (size, size);
+
+		for (int y = 0; y < tex.height; y++) {
+			for (int x = 0; x < tex.width; x++) {
+				tex.SetPixel (x,y,atmosphere.GetAtmosColor (atmosphere.PositionToAltitude01 (TexCoordsToWorld (x,y,size,size,center,atmos.localScale.x))));
+			}
+		}
+
+		tex.Apply ();
+		atmos.renderer.material.SetTexture (0, tex);
+	}
+
+	Vector2 TexCoordsToWorld (int x, int y, int width, int height, Vector2 pos, float scale) { // Assuming square quad
+		return new Vector2 ((float)x/(float)width, (float)y/(float)height) * scale - new Vector2 (scale, scale)/2 + pos;
 	}
 
 	void GenerateTextureAtlas () {
@@ -67,6 +106,7 @@ public class Planet : MonoBehaviour {
 		InitializeTiles ();
 		GenerateTextureAtlas ();
 		InitializeChunks ();
+		GenerateAtmosphereTexture ();
 
 		Camera.main.GetComponent<CameraController>().MoveToPlanet (this);
 	}
@@ -96,25 +136,16 @@ public class Planet : MonoBehaviour {
 
 	void InitializeTiles () {
 		tiles = new int[radius * 2,radius * 2];
+		generator.Initialize (this, tile, radius, temperature);
 
 		for (int y = 0; y < tiles.GetLength (1); y++) {
 			for (int x = 0; x < tiles.GetLength (0); x++) {
 
 				float distance = Vector3.Distance (new Vector3 (x,y), center) * Chunk.scale;
+				float angle	   = Angle.CalculateAngle (center, new Vector3 (x,y));
+				
+				tiles[x,y] = tile[generator.GetTile (x, y, distance, angle)];
 
-				tiles[x,y] = tile["Stone"];
-
-				// Generate edge
-				if (distance > radius - 5) tiles[x,y] = tile["Dirt"];
-				if (distance > radius - 10 && Random.Range (0,(int)distance - radius) == 0) tiles[x,y] = tile["Dirt"];
-				if (distance > radius - 5 && Random.Range (0,(int)distance - radius) == 0) tiles[x,y] = tile["Grass"];
-				if (distance > (float)radius - 0.1f) tiles[x,y] = tile["Air"];
-
-				// Generate core
-				float perlinScale = 5f;
-				if (Mathf.PerlinNoise ((float)x / perlinScale,(float)y / perlinScale) > distance/(float)radius + 0.2f) tiles[x,y] = tile["Lava"];
-				if (distance < radius / 3) tiles[x,y] = tile["Lava"];
-				if (distance < radius / 5) tiles[x,y] = tile["Magma"];
 			}
 		}
 	}

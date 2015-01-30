@@ -8,7 +8,6 @@ public class SeperatorModule : Module {
 	public override void ActivateModule () {
 
 		if (isActive) {
-			Debug.Log ("Seperating in " + mods[0].value.ToString () + " seconds.");
 			Invoke ("Seperate", mods[0].value);
 		}
 

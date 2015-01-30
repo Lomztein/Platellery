@@ -57,7 +57,12 @@ public class Module : MonoBehaviour {
 	void FixedUpdate () {
 		if (isActive) ModuleFixedUpdate ();
 
-		// float aeroAngle = Angle.CalculateRelativeAngle (transform, transform.position + missle.rigidbody.velocity) - transform.eulerAngles.z;
+		if (parentModule == null) {
+			float dif = Vector3.Angle(missle.rigidbody.velocity, missle.transform.up);
+			float cpScale = (((dif -90) - 90)/ 720) - 0.125f;
+			// Debug.Log (cpScale);
+		}
+
 	}
 
 	public virtual void ModuleFixedUpdate () {
