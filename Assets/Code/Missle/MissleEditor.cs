@@ -58,17 +58,15 @@ public class MissleEditor : MonoBehaviour {
 	}
 
 	void ResetEditor () {
+		focusModule = null;
 		for (int i = 0; i < currentParts.Count; i++) {
 			Destroy (currentParts[i]);
 		}
-
+		currentParts.Clear ();
+		placementPos = transform.position;
 		currentMissle = (GameObject)Instantiate (misslePrefab, transform.position, Quaternion.identity);
-		GameObject f = (GameObject)Instantiate (parts[0], transform.position, Quaternion.identity);
-		currentMissle.GetComponent<Missle>().modules.Add (f.GetComponent<Module>());
-		f.transform.parent = currentMissle.transform;
-		f.GetComponent<Module>().missle = currentMissle.GetComponent<Missle>();
-		f.GetComponent<Module>().ActivateModule ();
-		currentParts.Add (f);
+		placingPartID = 0;
+		PlacePart ();
 	}
 	
 	// Update is called once per frame
@@ -206,19 +204,23 @@ public class MissleEditor : MonoBehaviour {
 		editorCamera.gameObject.SetActive (true);
 		enabled = true;
 		canvas.SetActive (false);
+		audio.Play ();
+		Camera.main.GetComponent<AudioListener>().enabled = false;
 	}
 
 	public void CloseEditor () {
 		editorCamera.gameObject.SetActive (false);
 		enabled = false;
 		canvas.SetActive (true);
+		audio.Stop ();
+		Camera.main.GetComponent<AudioListener>().enabled = true;
 	}
-	
+
 	public void LaunchMissle () {
 		GameObject newMissle = (GameObject)Instantiate (currentMissle, new Vector3 (Planet.current.radius, Planet.current.radius * 2 + 0.25f + GetMissleBounds ().y, 0), Quaternion.identity);
 		Camera.main.GetComponent<CameraController>().FollowMissle (newMissle.transform);
 		Missle m = newMissle.GetComponent<Missle>();
-		m.Invoke ("Launch", 2);
+		m.Invoke ("InvokedLaunch",2);
 		CloseEditor ();
 		m.inEditor = false;
 	}

@@ -20,6 +20,10 @@ public class ThrusterModule : Module {
 		if (!isThrusting) StopParticles ();
 	}
 
+	public override void ActivateModule () {
+		isThrusting = mods[1].ToBool ();
+	}
+
 	void Toggle () {
 		isThrusting = !isThrusting;
 	}
@@ -29,6 +33,7 @@ public class ThrusterModule : Module {
 	}
 
 	void Update () {
+		audio.volume = mods[0].value/100f;
 		par.startSpeed = 25 * (mods[0].value/100f);
 		par.emissionRate = 100 * (mods[0].value/100f);
 		thrustVector.transform.localRotation = Quaternion.Euler (0,0,mods[2].value);
@@ -36,7 +41,6 @@ public class ThrusterModule : Module {
 
 	public override void ModuleFixedUpdate () {
 
-		isThrusting = mods[1].ToBool ();
 		if (fuelContainer) {
 			if (isThrusting) {
 				if (fuelContainer.fuel > 0) {
@@ -53,12 +57,14 @@ public class ThrusterModule : Module {
 	void StartParticles () {
 		if (!par.isPlaying) {
 			par.Play ();
+			audio.Play ();
 		}
 	}
 
 	void StopParticles () {
 		if (par.isPlaying) {
 			par.Stop ();
+			audio.Stop ();
 		}
 	}
 }

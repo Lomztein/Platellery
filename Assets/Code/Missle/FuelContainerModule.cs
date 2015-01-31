@@ -19,10 +19,10 @@ public class FuelContainerModule : Module {
 
 	public override void ModuleFixedUpdate () {
 
-		if (fuel < mods[0].value) {
+		if (fuel < startFuel) {
 
 			if (parentFuel) if (parentFuel.fuel > 0) {
-				float f = Mathf.Max  (startFuel-fuel, parentFuel.fuel);
+				float f = Mathf.Min (startFuel-fuel, parentFuel.fuel);
 				fuel += f;
 				parentFuel.fuel -= f;
 			}

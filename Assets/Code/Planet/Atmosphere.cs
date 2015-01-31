@@ -20,4 +20,9 @@ public class Atmosphere {
 		float d = Vector3.Distance (pos, Planet.current.center) - Planet.current.radius;
 		return Mathf.Clamp01 (d/altitude);
 	}
+
+	public float PositionToAltitude (Vector3 pos) {
+		float d = Vector3.Distance (pos, Planet.current.center) - Planet.current.radius;
+		return d;
+	}
 }

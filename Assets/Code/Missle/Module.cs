@@ -109,8 +109,8 @@ public class Module : MonoBehaviour {
 		missle.modules.Remove (this);
 		missle = newM.GetComponent<Missle>();
 		missle.inEditor = false;
-		missle.Launch ();
 		SyncMissleToMasterParent (missle, this);
+		missle.Launch (true);
 	}
 
 	void SyncMissleToMasterParent (Missle m, Module start) {

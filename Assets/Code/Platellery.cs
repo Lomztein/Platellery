@@ -21,15 +21,17 @@ public class Platellery : MonoBehaviour {
 
 	public GUISkin skin;
 
-	public static bool debugMode;
+	public static bool debugMode = true;
 	public GameObject editorCamera;
 	public MissleEditor editor;
-
+	public static CameraController cameraController;
+	
 	// Use this for initialization
 	void Start () {
 		game = this;
 		drillProgress.maxValue = planet.radius;
 		drillHealth.maxValue = drill.health;
+		cameraController = Camera.main.GetComponent<CameraController>();
 	}
 	
 	// Update is called once per frame

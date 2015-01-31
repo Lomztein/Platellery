@@ -27,7 +27,7 @@ public class EnemyDrill : MonoBehaviour {
 	}
 
 	void Drill () {
-		if (!Platellery.game.hasLost) {
+		if (!Platellery.game.hasLost && !Platellery.game.hasWon) {
 			planet.ChangeSingleTile (x,y, 0);
 			planet.ChangeSingleTile (x-1,y, 0);
 			y += 1;
@@ -44,5 +44,8 @@ public class EnemyDrill : MonoBehaviour {
 
 	public void TakeDamage (float d) {
 		health -= d;
+		if (health < 0) {
+			Platellery.WinTheGame ();
+		}
 	}
 }
