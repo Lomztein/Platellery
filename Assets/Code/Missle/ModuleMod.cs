@@ -11,11 +11,13 @@ public class ModuleMod {
 
 	public float min;
 	public float max;
+	public float start;
 
 	public float value;
 
-	public void Draw (Rect rect) {
+	public void Draw (Rect rect, bool interactable) {
 		value = Mathf.Round (GUI.HorizontalSlider (rect, Mathf.Round (value), min, max));
+		if (!interactable) value = start;
 		GUI.Label (rect, ToString ());
 	}
 

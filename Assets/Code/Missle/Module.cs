@@ -111,6 +111,7 @@ public class Module : MonoBehaviour {
 		missle.inEditor = false;
 		SyncMissleToMasterParent (missle, this);
 		missle.Launch (true);
+		parentModule = null;
 	}
 
 	void SyncMissleToMasterParent (Missle m, Module start) {

@@ -33,7 +33,9 @@ public class MissleEditor : MonoBehaviour {
 	public GUISkin skin;
 
 	public LayerMask missleLayer;
-	public GameObject canvas;
+
+	public bool canInteract;
+	public bool canBuild;
 
 	// Use this for initialization
 	void Start () {
@@ -42,7 +44,6 @@ public class MissleEditor : MonoBehaviour {
 		InitializePartButtons ();
 		InitializeAssetModuleArray ();
 		current = this;
-		CloseEditor ();
 	}
 
 	void InitializeAssetModuleArray () {
@@ -59,18 +60,23 @@ public class MissleEditor : MonoBehaviour {
 
 	void ResetEditor () {
 		focusModule = null;
+		Destroy (currentMissle);
 		for (int i = 0; i < currentParts.Count; i++) {
-			Destroy (currentParts[i]);
+			focusPart = currentParts[i];
+			RemovePart ();
 		}
 		currentParts.Clear ();
 		placementPos = transform.position;
 		currentMissle = (GameObject)Instantiate (misslePrefab, transform.position, Quaternion.identity);
-		placingPartID = 0;
+		GetFocusPart (0);
 		PlacePart ();
+		focusModule.parentModule = null;
+		GetFocusPart (1);
 	}
 	
 	// Update is called once per frame
 	void Update () {
+		audio.volume = Platellery.musicLevel;
 
 		hoveringID = -1;
 
@@ -86,13 +92,13 @@ public class MissleEditor : MonoBehaviour {
 		Ray ray = editorCamera.ScreenPointToRay (Input.mousePosition);
 		RaycastHit hit;
 
-		if (Input.GetButtonDown ("Up")) placementAngle = 0;
-		if (Input.GetButtonDown ("Down")) placementAngle = 2;
-		if (Input.GetButtonDown ("Left")) placementAngle = 1;
-		if (Input.GetButtonDown ("Right")) placementAngle = 3;
+		if (Input.GetAxis ("Vertical") > 0) placementAngle = 0;
+		if (Input.GetAxis ("Vertical") < 0) placementAngle = 2;
+		if (Input.GetAxis ("Horizontal") > 0) placementAngle = 1;
+		if (Input.GetAxis ("Horizontal") < 0) placementAngle = 3;
 		if (Input.GetButtonDown ("Mirror")) if (isFlipped == 0) { isFlipped = 1; }else{ isFlipped = 0; }
 
-		if (Physics.Raycast (ray, out hit, 20f)) {
+		if (Physics.Raycast (ray, out hit, 20f) && canBuild) {
 			focusPart = hit.collider.gameObject;
 			Bounds bounds = focusPart.transform.GetChild (0).renderer.bounds;
 			
@@ -128,7 +134,6 @@ public class MissleEditor : MonoBehaviour {
 				isDragging = true;
 			}
 
-			if (Input.GetButtonDown ("Mouse2")) RemovePart ();
 			if (Input.GetButtonUp ("Mouse1") && isDragging) {
 				Module m = focusPart.GetComponent<Module>();
 				if (m != focusModule) {
@@ -140,15 +145,16 @@ public class MissleEditor : MonoBehaviour {
 				isDragging = false;
 			}
 
-			if (focusModule) {
-				if (Input.GetButton ("Mouse1")) {
-					if (focusModule.parentLine) focusModule.parentLine.SetPosition (1, focusPart.transform.position + Vector3.back);
-				}else{
-					if (focusModule.parentLine) focusModule.parentLine.SetPosition (1, focusModule.parentModule.transform.position);
-				}
-			}
-
 			placementAngle += Mathf.RoundToInt (Input.GetAxis ("Mouse ScrollWheel") * 10);
+			if (Input.GetButtonDown ("Mouse2")) RemovePart ();
+		}
+
+		if (focusModule) if (focusModule.parentModule) {
+			if (Input.GetButton ("Mouse1")) {
+				if (focusModule.parentLine) focusModule.parentLine.SetPosition (1, focusPart.transform.position + Vector3.back);
+			}else{
+				if (focusModule.parentLine) focusModule.parentLine.SetPosition (1, focusModule.parentModule.transform.position);
+			}
 		}
 
 		if (Input.GetButtonDown ("Mouse2")) focusModule = null;
@@ -181,6 +187,13 @@ public class MissleEditor : MonoBehaviour {
 
 		focusModule.missle.modules.Add (focusModule);
 	}
+
+	public void ForcePlacePart (GameObject focus, Vector3 position, int partID) {
+		placementPos = transform.position + position;
+		focusPart = focus;
+		GetFocusPart (partID);
+		PlacePart ();
+	}
 	
 	void RemovePart () {
 		focusModule = focusPart.GetComponent<Module>();
@@ -200,18 +213,20 @@ public class MissleEditor : MonoBehaviour {
 		}
 	}
 
-	public void OpenEditor () {
+	public void OpenEditor (bool enable) {
 		editorCamera.gameObject.SetActive (true);
 		enabled = true;
-		canvas.SetActive (false);
+		Platellery.game.HUD.SetActive (false);
 		audio.Play ();
 		Camera.main.GetComponent<AudioListener>().enabled = false;
+		canBuild = enable;
+		canInteract = enable;
 	}
 
 	public void CloseEditor () {
 		editorCamera.gameObject.SetActive (false);
 		enabled = false;
-		canvas.SetActive (true);
+		Platellery.game.HUD.SetActive (true);
 		audio.Stop ();
 		Camera.main.GetComponent<AudioListener>().enabled = true;
 	}
@@ -247,22 +262,29 @@ public class MissleEditor : MonoBehaviour {
 				Rect r = new Rect (Screen.width - 80, 20 + 80 * i, 60, 60);
 
 				if (GUI.Button (r, "", skin.customStyles[0])) 
-					GetFocusPart (i);
+					if (canInteract) GetFocusPart (i);
 				if (r.Contains (new Vector3 (Input.mousePosition.x, -Input.mousePosition.y + Screen.height, 0)))
 					hoveringID = i;
 
 				GUI.DrawTexture (new Rect (Screen.width - 70, 30 + 80 * i, 40, 40), buttons[i], ScaleMode.ScaleToFit, true, 0);
 			}
-			if (GUI.Button (new Rect (Screen.width / 3, Screen.height - 100, Screen.width / 3, 50), "LAUNCH!", skin.customStyles[0])) LaunchMissle ();
-			if (GUI.Button (new Rect (20, 20, 200, 60), "BACK", skin.customStyles[0])) CloseEditor ();
-			if (GUI.Button (new Rect (20, 100, 100, 30), "CLEAR", skin.customStyles[0])) ResetEditor ();
+			if (GUI.Button (new Rect (Screen.width / 3, Screen.height - 100, Screen.width / 3, 50), "LAUNCH!", skin.customStyles[0])) if (canInteract) LaunchMissle ();
+			if (GUI.Button (new Rect (20, 20, 200, 60), "BACK", skin.customStyles[0])) if (canInteract) CloseEditor ();
+			if (GUI.Button (new Rect (20, 100, 100, 30), "CLEAR", skin.customStyles[0])) if (canInteract) ResetEditor ();
 
 			if (hoveringID > -1) {
 				partModules[hoveringID].DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));
-			}else if (focusModule) {
-				focusModule.DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));
-				for (int i = 0 ; i <focusModule.mods.Length ; i++) {
-					focusModule.mods[i].Draw (new Rect (240, 20 + i * 30, Screen.width - 340, 20));
+			}else if (focusModule) { 
+				if (canBuild) {
+					focusModule.DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));
+					for (int i = 0 ; i <focusModule.mods.Length ; i++) {
+						focusModule.mods[i].Draw (new Rect (240, 20 + i * 30, Screen.width - 340, 20), true);
+					}
+				}else{
+					focusModule.DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));
+					for (int i = 0 ; i <focusModule.mods.Length ; i++) {
+						focusModule.mods[i].Draw (new Rect (240, 20 + i * 30, Screen.width - 340, 20), false);
+					}
 				}
 			}
 		}

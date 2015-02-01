@@ -68,12 +68,13 @@ public class Missle : MonoBehaviour {
 	void OnGUI () {
 		if (Platellery.debugMode && Platellery.cameraController.followingMissle == transform) {
 			GUI.Label (new Rect (20,300,Screen.width-20, Screen.height-300), 
-			           "Mass: " + rigidbody.mass.ToString () +
-			           "\nDrag: " + rigidbody.drag.ToString () + 
-			           "\nAltitude: " + Planet.current.atmosphere.PositionToAltitude (transform.position).ToString () +
-			           "\nSpeed: " + rigidbody.velocity.magnitude.ToString () + 
-			           "\nMissles: " + Platellery.game.activeMissles.Count + " / " + Platellery.game.maxMissles.ToString () + 
-			           "\nLocModules: " + modules.Count.ToString ());
+			    "Mass: " + rigidbody.mass.ToString () +
+			    "\nDrag: " + rigidbody.drag.ToString () + 
+			    "\nAltitude: " + Planet.current.atmosphere.PositionToAltitude (transform.position).ToString () +
+			    "\nSpeed: " + rigidbody.velocity.magnitude.ToString () + 
+			    "\nMissles: " + Platellery.game.activeMissles.Count + " / " + Platellery.game.maxMissles.ToString () + 
+			    "\nLocModules: " + modules.Count.ToString () + 
+				"\nGravity: " + Planet.current.GetPositionalGravity (transform.position).ToString ());
 		}
 	}
 }

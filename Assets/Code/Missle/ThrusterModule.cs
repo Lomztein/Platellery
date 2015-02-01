@@ -33,7 +33,7 @@ public class ThrusterModule : Module {
 	}
 
 	void Update () {
-		audio.volume = mods[0].value/100f;
+		audio.volume = mods[0].value/100f * Platellery.soundLevel;
 		par.startSpeed = 25 * (mods[0].value/100f);
 		par.emissionRate = 100 * (mods[0].value/100f);
 		thrustVector.transform.localRotation = Quaternion.Euler (0,0,mods[2].value);

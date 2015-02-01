@@ -16,23 +16,43 @@ public class CameraController : MonoBehaviour {
 
 	private float startingDistance;
 	private float distanceToCenter;
-	private float zoomFactor;
+	private float zoomFactor = 0.99f;
 
 	public Transform followingMissle;
 
-	public Vector3 targetPos;
+	private Vector3 targetPos;
 	private Quaternion targetRot;
+	private float targetSize;
+
+	public Transform arrow;
+	private SpriteRenderer arrowRenderer;
+
+	public bool enableMovement = true;
 
 	// Use this for initialization
 	void Start () {
 		distanceToCenter = Vector3.Distance (Planet.current.center, transform.position + Vector3.back * transform.position.z);
 		startingDistance = distanceToCenter;
+		arrowRenderer = arrow.GetComponent<SpriteRenderer>();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetButtonDown ("Escape")) followingMissle = null;
-		Move ();
+		if (Input.GetButtonDown ("Cancel")) followingMissle = null;
+		if (followingMissle) {
+			arrowRenderer.color = new Color (1f,1f,1f,1f-zoomFactor);
+			Quaternion rot = Quaternion.LookRotation (Vector3.forward, followingMissle.position - focusPlanet.center);
+			arrow.transform.position = rot * new Vector3 (0, focusPlanet.radius + 2.5f, 0) + focusPlanet.center;
+			arrow.transform.rotation = Quaternion.Euler (0,0,Angle.CalculateAngle (focusPlanet.center, followingMissle.position));
+		}else{
+			arrowRenderer.color = new Color (1f,1f,1f,0f);
+		}
+
+		if (enableMovement) {
+			Move ();
+		}else{
+			EndMove ();
+		}
 	}
 
 	void Move () {
@@ -63,14 +83,34 @@ public class CameraController : MonoBehaviour {
 			zoomFactor += Input.GetAxis ("Mouse ScrollWheel");
 			if (distanceToCenter < 15) distanceToCenter = 15;
 		}
-		zoomFactor = Mathf.Clamp (zoomFactor, 0.01f,0.99f);
+		zoomFactor = Mathf.Clamp (zoomFactor, 0f,0.999f);
 
+		targetRot = Quaternion.LookRotation (Vector3.forward, transform.position + Vector3.back * transform.position.z - focusPlanet.center);
+		targetPos += targetRot * (movement * (distanceToCenter / startingDistance)) * zoomFactor;
+		targetSize = Mathf.Lerp (Planet.current.radius + 10, 15, zoomFactor);
+		EndMove ();
+
+	}
+
+	public void ForceMove (Vector3 movement, float distance) {
+		movement.y = -(Vector3.Distance (targetPos, focusPlanet.center) - distance);
+		targetRot = Quaternion.LookRotation (Vector3.forward, transform.position + Vector3.back * transform.position.z - focusPlanet.center);
+		targetPos += targetRot * (movement * (distanceToCenter / startingDistance)) * zoomFactor;
+		targetSize = Mathf.Lerp (Planet.current.radius + 10, 15, zoomFactor);
+		EndMove ();
+	}
+
+	void EndMove () {
 		// Put movement in action
-		targetPos += transform.rotation * (movement * (distanceToCenter / startingDistance));
-		transform.position = Vector3.Lerp (transform.position, Vector3.Lerp (Planet.current.center + Vector3.back * 10 + transform.up, targetPos, zoomFactor), moveSpeed * Time.deltaTime);
-		camera.orthographicSize = Mathf.Lerp (camera.orthographicSize, Mathf.Lerp (Planet.current.radius + 10, 15, zoomFactor), moveSpeed * Time.deltaTime); 
-		transform.rotation = Quaternion.LookRotation (Vector3.forward, transform.position + Vector3.back * transform.position.z - focusPlanet.center);
+		transform.position = Vector3.Lerp (transform.position, Vector3.Lerp (Planet.current.center + Vector3.back * 10, targetPos, zoomFactor), moveSpeed * Time.deltaTime);
+		camera.orthographicSize = Mathf.Lerp (camera.orthographicSize, targetSize, moveSpeed * Time.deltaTime); 
+		transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Lerp (Quaternion.identity, targetRot , zoomFactor),moveSpeed * Time.deltaTime);
+	}
 
+	public void MoveToPosition (Vector3 pos, float angle, float size) {
+		targetPos = pos + Vector3.back * 10;
+		targetRot = Quaternion.Euler (new Vector3 (0,0,angle));
+		targetSize = size;
 	}
 
 	public void MoveToPlanet (Planet newPlanet) {
