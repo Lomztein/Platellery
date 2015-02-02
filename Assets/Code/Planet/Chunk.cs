@@ -16,16 +16,6 @@ public class Chunk : MonoBehaviour {
 	public GameObject colPrefab;
 	public GameObject[,] cols;
 
-	// Use this for initialization
-	void Start () {
-		GenerateMesh ();
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-
 	private Vector3[] verts;
 	private int[] tris;
 	private Vector2[] uvs;
@@ -56,6 +46,7 @@ public class Chunk : MonoBehaviour {
 		mesh.normals = norms;
 
 		GetComponent<MeshFilter>().mesh = mesh;
+		planet.queue.Remove (this);
 	}
 
 	Vector2 GlobalToLocalCoords (int x, int y) {

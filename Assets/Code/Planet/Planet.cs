@@ -11,9 +11,11 @@ public class Planet : MonoBehaviour {
 	public int chunkResolution;
 	public int[,] tiles;
 
+	// Generation stuff
 	public Chunk[,] chunks;
-
 	public GameObject chunkPrefab;
+	public List<Chunk> queue = new List<Chunk>();
+	public int generationsPerTick;
 
 	public Vector3 center;
 	public float gravity;
@@ -37,6 +39,11 @@ public class Planet : MonoBehaviour {
 		Randomize ();
 		InitializeTileDictionary ();
 		InitializePlanet ();
+	}
+
+	void FixedUpdate () {
+		for (int i = 0; i < generationsPerTick; i++)
+			if (i < queue.Count) queue[i].GenerateMesh ();
 	}
 
 	void Randomize () {
@@ -124,6 +131,8 @@ public class Planet : MonoBehaviour {
 				newChunk.name = "Chunk (" + x.ToString() + "," + y.ToString() + ")";
 				newChunk.transform.parent = transform;
 				newChunk.renderer.sharedMaterial.SetTexture (0, tileAtlas);
+
+				queue.Add (c);
 			}
 		}
 	}
