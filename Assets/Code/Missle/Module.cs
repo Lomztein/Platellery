@@ -68,8 +68,8 @@ public class Module : MonoBehaviour {
 			EditorFixedUpdate ();
 		}
 
-		if (Platellery.game.activeMissles.Count > 0) if (gameObject == Platellery.game.activeMissles[0]) {
-			float dif = Vector3.Angle(missle.rigidbody.velocity, missle.transform.up);
+		if (Game.game.activeMissles.Count > 0) if (gameObject == Game.game.activeMissles[0]) {
+			float dif = Vector3.Angle(missle.GetComponent<Rigidbody>().velocity, missle.transform.up);
 			float cpScale = (((dif -90) - 90)/ 720) - 0.125f;
 			Debug.Log (cpScale);
 		}
@@ -81,6 +81,10 @@ public class Module : MonoBehaviour {
 
 	void OnCreate () {
 		missle.modules.Add (this);
+	}
+
+	public void OnModuleHit () {
+		Die ();
 	}
 
 	public void Die () {
@@ -104,8 +108,8 @@ public class Module : MonoBehaviour {
 
 	public void SeperateFromHere () {
 		GameObject newM = (GameObject)Instantiate (MissleEditor.current.misslePrefab, transform.position, transform.rotation);
-		newM.rigidbody.isKinematic = false;
-		newM.rigidbody.velocity = missle.rigidbody.velocity;
+		newM.GetComponent<Rigidbody>().isKinematic = false;
+		newM.GetComponent<Rigidbody>().velocity = missle.GetComponent<Rigidbody>().velocity;
 		missle.modules.Remove (this);
 		missle = newM.GetComponent<Missle>();
 		missle.inEditor = false;

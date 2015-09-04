@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class Platellery : MonoBehaviour {
+public class Game : MonoBehaviour {
 
 	public List<GameObject> activeMissles = new List<GameObject>();
 
@@ -14,7 +14,7 @@ public class Platellery : MonoBehaviour {
 	public EnemyDrill drill;
 	public Planet planet;
 
-	public static Platellery game;
+	public static Game game;
 
 	public bool hasWon;
 	public bool hasLost;
@@ -37,23 +37,21 @@ public class Platellery : MonoBehaviour {
 	public static float musicLevel = 1;
 
 	// HUD stuff
-	public GameObject HUD;
+	public GameObject flightHUD;
+	public GameObject editorHUD;
+
 	public GameObject startMenu;
 	public bool showGUI;
 
 	// Use this for initialization
 	void Start () {
 		game = this;
-		drillProgress.maxValue = planet.radius;
-		drillHealth.maxValue = drill.health;
 		tutorial = GetComponent<Tutorial>();
 		cameraController = Camera.main.GetComponent<CameraController>();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		drillProgress.value = planet.radius - drill.y;
-		drillHealth.value = drill.health;
 
 		if (pauseMenu.activeInHierarchy) {
 			soundLevel = soundSlider.value;
@@ -102,12 +100,12 @@ public class Platellery : MonoBehaviour {
 
 	public static void Pause () {
 		Time.timeScale = 0f;
-		Platellery.game.pauseMenu.SetActive (true);
+		Game.game.pauseMenu.SetActive (true);
 	}
 
 	public static void Resume () {
 		Time.timeScale = 1f;
-		Platellery.game.pauseMenu.SetActive (false);
+		Game.game.pauseMenu.SetActive (false);
 	}
 
 	public void RestartGame () {
@@ -123,7 +121,7 @@ public class Platellery : MonoBehaviour {
 	}
 
 	public void StartGame (bool withTutorial) {
-		HUD.SetActive (true);
+		// HUD.SetActive (true);
 		cameraController.enableMovement = true;
 		startMenu.SetActive (false);
 		if (!withTutorial) showGUI = true;
@@ -144,9 +142,6 @@ public class Platellery : MonoBehaviour {
 			if (hasLost) {
 				if (GUI.Button (new Rect (Screen.width / 3, 300, Screen.width / 3, 100), "YOU HAVE FAILED.\nRESTART?"))
 					Application.LoadLevel (Application.loadedLevel);
-			}
-			if (!editorCamera.activeInHierarchy) {
-				if (GUI.Button (new Rect (20, 20, 200, 60), "EDITOR", skin.customStyles[0])) editor.OpenEditor (true);
 			}
 		}
 	}

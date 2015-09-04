@@ -16,6 +16,7 @@ public class Planet : MonoBehaviour {
 	public GameObject chunkPrefab;
 	public List<Chunk> queue = new List<Chunk>();
 	public int generationsPerTick;
+	public GameObject tileDebris;
 
 	public Vector3 center;
 	public float gravity;
@@ -26,6 +27,7 @@ public class Planet : MonoBehaviour {
 
 	private Texture2D tileAtlas;
 	public static int textureSize = 16;
+	public Texture2D bitmaskAtlasMask;
 
 	public Vector2[] nearby;
 
@@ -71,7 +73,7 @@ public class Planet : MonoBehaviour {
 		}
 
 		tex.Apply ();
-		atmos.renderer.material.SetTexture (0, tex);
+		atmos.GetComponent<Renderer>().material.SetTexture (0, tex);
 	}
 
 	Vector2 TexCoordsToWorld (int x, int y, int width, int height, Vector2 pos, float scale) { // Assuming square quad
@@ -79,15 +81,33 @@ public class Planet : MonoBehaviour {
 	}
 
 	void GenerateTextureAtlas () {
-		Texture2D tex = new Texture2D (textureSize * tileTypes.Length, textureSize);
+		Texture2D tex = new Texture2D (bitmaskAtlasMask.width, textureSize * tileTypes.Length);
+		int maskAmount = bitmaskAtlasMask.width / textureSize;
 		for (int i = 0; i < tileTypes.Length; i ++) {
+
 			Texture2D loc = tileTypes[i].texture;
 
-			for (int y = 0; y < textureSize; y++) {
-				for (int x = 0; x < textureSize; x++) {
+			for (int m = 0; m < maskAmount; m++) {
 
-					tex.SetPixel (x + textureSize * i,y,loc.GetPixel (x,y));
+				int maskX = m * textureSize;
 
+				for (int y = 0; y < textureSize; y++) {
+					for (int x = 0; x < textureSize; x++) {
+
+						Color c = bitmaskAtlasMask.GetPixel (maskX + x, y);
+
+						if (c.grayscale < 0.9f) {
+
+							if (c.grayscale > 0.1f) {
+								Color locP = loc.GetPixel (x,y);
+								tex.SetPixel (maskX + x, y + textureSize * i, new Color (locP.r / 2, locP.g / 2, locP.b / 2, locP.a));
+							}else{
+								tex.SetPixel (maskX + x, y + textureSize * i, loc.GetPixel (x,y));
+							}
+						}else{
+							tex.SetPixel (maskX + x, y + textureSize * i, Color.clear);
+						}
+					}
 				}
 			}
 		}
@@ -130,7 +150,7 @@ public class Planet : MonoBehaviour {
 
 				newChunk.name = "Chunk (" + x.ToString() + "," + y.ToString() + ")";
 				newChunk.transform.parent = transform;
-				newChunk.renderer.sharedMaterial.SetTexture (0, tileAtlas);
+				newChunk.GetComponent<Renderer>().sharedMaterial.SetTexture (0, tileAtlas);
 
 				queue.Add (c);
 			}
@@ -203,6 +223,18 @@ public class Planet : MonoBehaviour {
 		ex.GetComponent<Explosion>().size = size;
 	}
 
+	GameObject CreateDebris (Vector3 pos, Vector3 velocity, int id) {
+		GameObject deb = (GameObject)Instantiate (tileDebris, pos, Quaternion.identity);
+		TileDebris debris = deb.GetComponent<TileDebris> ();
+
+		debris.planet = this;
+		debris.id = id;
+		debris.velocity = velocity;
+
+		debris.ChangeUVs ();
+		return deb;
+	}
+
 	public void CreateExplosion (float x, float y, float range, float strength) {
 		CreateExplosionEffect (x,y,range);
 
@@ -212,7 +244,8 @@ public class Planet : MonoBehaviour {
 
 		for (int i = 0; i < casts; i++) {
 
-			Ray ray = new Ray (new Vector3 (x,y), Quaternion.Euler (0,0,(float)i/(float)casts * 360f) * Vector3.right);
+			Quaternion qua = Quaternion.Euler (0,0,(float)i/(float)casts * 360f);
+			Ray ray = new Ray (new Vector3 (x,y), qua * Vector3.right);
 			RaycastHit hit;
 
 			if (Physics.Raycast (ray, out hit, range)) {
@@ -232,6 +265,7 @@ public class Planet : MonoBehaviour {
 							Chunk cc = GetChunk ((int)locPos.x + (int)nearby[j].x,(int)locPos.y + (int)nearby[j].y);
 							if (cc) cc.UpdateCollider ((int)locPos.x + (int)nearby[j].x,(int)locPos.y + (int)nearby[j].y);
 							for (int a = 0; a < nearby.Length; a++) {
+								if (cc) if (!toUpdate.Contains (cc)) toUpdate.Add (cc);
 								int xx = (int)(locPos.x + nearby[a].x);
 								int yy = (int)(locPos.y + nearby[a].y);
 								Tile t = GetTileType (xx,yy);
@@ -248,5 +282,10 @@ public class Planet : MonoBehaviour {
 		for (int i = 0; i < toUpdate.Count ; i++) {
 			toUpdate[i].GenerateMesh ();
 		}
+
+		/*if (Random.Range (0,8) == 0) {
+			qua = Quaternion.Euler (0, 0, Random.Range (0, 360));
+			CreateDebris (new Vector3 (x,y), qua * Vector3.right * Random.Range (0f, range) * strength + new Vector3 (Random.Range (-1f, 1f),Random.Range (-1f, 1f)), GetTile ((int)locPos.x, (int)locPos.y));
+		}*/
 	}
 }

@@ -66,6 +66,20 @@ public class Chunk : MonoBehaviour {
 		if (IsInsideChunk (lx, ly)) cols[lx,ly].SetActive (status);
 	}
 
+	byte GetBitmask (int x, int y) {
+		byte mask = 0;
+		if (planet.GetTile (x + 1, y) != 0)
+			mask += 1;
+		if (planet.GetTile (x, y + 1) != 0)
+			mask += 2;
+		if (planet.GetTile (x - 1, y) != 0)
+			mask += 4;
+		if (planet.GetTile (x, y - 1) != 0)
+			mask += 8;
+
+		return mask;
+	}
+
 	// Change col.SetActive to col.enabled when Unity 5 is out, should be much faster by then.
 	public void UpdateCollider (int x, int y) {
 		if (cols == null) cols = new GameObject[Chunk.size,Chunk.size];
@@ -110,43 +124,34 @@ public class Chunk : MonoBehaviour {
 		verts[index * 4 + 3] = new Vector3 (x + 1,y) * Chunk.scale;
 
 		// Create tris dependant on nearby tiles
-		if (planet.GetTile (x + startX + 1,y + startY) == 0 && planet.GetTile (x + startX,y + startY + 1) == 0 ) {
-			tris[index * 6 + 0] = index * 4 + 0;
-			tris[index * 6 + 1] = index * 4 + 1;
-			tris[index * 6 + 2] = index * 4 + 3;
-		}else if (planet.GetTile (x + startX - 1,y + startY) == 0 && planet.GetTile (x + startX,y + startY + 1)  == 0 ) {
-			tris[index * 6 + 0] = index * 4 + 0;
-			tris[index * 6 + 1] = index * 4 + 2;
-			tris[index * 6 + 2] = index * 4 + 3;
-		}else if (planet.GetTile (x + startX + 1,y + startY) == 0 && planet.GetTile (x + startX, y + startY - 1) == 0 ) {
-			tris[index * 6 + 0] = index * 4 + 0;
-			tris[index * 6 + 1] = index * 4 + 1;
-			tris[index * 6 + 2] = index * 4 + 2;
-		}else if (planet.GetTile (x + startX - 1,y + startY) == 0 && planet.GetTile (x + startX,y + startY - 1) == 0 ) {
-			tris[index * 6 + 0] = index * 4 + 1;
-			tris[index * 6 + 1] = index * 4 + 2;
-			tris[index * 6 + 2] = index * 4 + 3;
-		}else{
-			tris[index * 6 + 0] = index * 4 + 0;
-			tris[index * 6 + 1] = index * 4 + 1;
-			tris[index * 6 + 2] = index * 4 + 2;
+		tris[index * 6 + 0] = index * 4 + 0;
+		tris[index * 6 + 1] = index * 4 + 1;
+		tris[index * 6 + 2] = index * 4 + 2;
 
-			tris[index * 6 + 3] = index * 4 + 2;
-			tris[index * 6 + 4] = index * 4 + 3;
-			tris[index * 6 + 5] = index * 4 + 0;
-		}
+		tris[index * 6 + 3] = index * 4 + 2;
+		tris[index * 6 + 4] = index * 4 + 3;
+		tris[index * 6 + 5] = index * 4 + 0;
 
 		norms[index * 4 + 0] = Vector3.back;
 		norms[index * 4 + 1] = Vector3.back;
 		norms[index * 4 + 2] = Vector3.back;
 		norms[index * 4 + 3] = Vector3.back;
 
-		float s = 1f/(float)planet.tileTypes.Length;
+		float v = 1f / (float)planet.tileTypes.Length;
+		float h = 1f / (planet.bitmaskAtlasMask.width / Planet.textureSize);
+		float mask = (float)GetBitmask (x + startX, y + startY);
 
-		uvs[index * 4 + 0] = new Vector2 ((float)id * s,0);
-		uvs[index * 4 + 1] = new Vector2 ((float)id * s,1);
-		uvs[index * 4 + 2] = new Vector2 ((float)id * s + s,1);
-		uvs[index * 4 + 3] = new Vector2 ((float)id * s + s,0);
+		uvs[index * 4 + 0] = new Vector2 (mask * h, (float)id * v);
+		uvs[index * 4 + 1] = new Vector2 (mask * h, (float)id * v + v);
+		uvs[index * 4 + 2] = new Vector2 (mask * h + h, (float)id * v + v);
+		uvs[index * 4 + 3] = new Vector2 (mask * h + h, (float)id * v);
 
+	}
+
+	public IEnumerator PopIntoExistance (float speed) {
+		while (transform.localScale.x < 0.95) {
+			transform.localScale = Vector3.Lerp (transform.position, Vector3.one, speed * Time.fixedDeltaTime);
+			yield return new WaitForFixedUpdate ();
+		}
 	}
 }

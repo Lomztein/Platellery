@@ -28,7 +28,7 @@ public class SeperatorModule : Module {
 				Vector3 dir = childModules[i].transform.position - transform.position;
 				childModules[i].SendMessage ("Arm",SendMessageOptions.DontRequireReceiver);
 				childModules[i].SeperateFromHere ();
-				childModules[i].missle.rigidbody.AddForceAtPosition (dir.normalized * seperationForce, childModules[i].transform.position);
+				childModules[i].missle.GetComponent<Rigidbody>().AddForceAtPosition (dir.normalized * seperationForce, childModules[i].transform.position);
 			}
 		}
 	}

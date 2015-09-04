@@ -76,7 +76,7 @@ public class MissleEditor : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		audio.volume = Platellery.musicLevel;
+		GetComponent<AudioSource>().volume = Game.musicLevel;
 
 		hoveringID = -1;
 
@@ -100,12 +100,12 @@ public class MissleEditor : MonoBehaviour {
 
 		if (Physics.Raycast (ray, out hit, 20f) && canBuild) {
 			focusPart = hit.collider.gameObject;
-			Bounds bounds = focusPart.transform.GetChild (0).renderer.bounds;
+			Bounds bounds = focusPart.transform.GetChild (0).GetComponent<Renderer>().bounds;
 			
 			Vector3 pos = Vector3.zero;
 			Vector3 loc = new Vector3 ((hit.point.x - focusPart.transform.position.x),(hit.point.y - focusPart.transform.position.y));
 			Vector3 ext = bounds.extents;
-			Vector3 pExt = parts[placingPartID].transform.GetChild (0).renderer.bounds.extents;
+			Vector3 pExt = parts[placingPartID].transform.GetChild (0).GetComponent<Renderer>().bounds.extents;
 
 			float margin = 0.1f;
 
@@ -163,11 +163,11 @@ public class MissleEditor : MonoBehaviour {
 			isDragging = false;
 
 		if (placingPartID == -1) {
-			placingPartSprite.renderer.material.color = Color.clear;
+			placingPartSprite.GetComponent<Renderer>().material.color = Color.clear;
 		}else if (canPlacePlacingPart) {
-			placingPartSprite.renderer.material.color = Color.green;
+			placingPartSprite.GetComponent<Renderer>().material.color = Color.green;
 		}else{
-			placingPartSprite.renderer.material.color = Color.red;
+			placingPartSprite.GetComponent<Renderer>().material.color = Color.red;
 		}
 
 		if (currentParts.Count == 0) ResetEditor ();
@@ -216,8 +216,9 @@ public class MissleEditor : MonoBehaviour {
 	public void OpenEditor (bool enable) {
 		editorCamera.gameObject.SetActive (true);
 		enabled = true;
-		Platellery.game.HUD.SetActive (false);
-		audio.Play ();
+		Game.game.editorHUD.SetActive (true);
+		Game.game.flightHUD.SetActive (false);
+		GetComponent<AudioSource>().Play ();
 		Camera.main.GetComponent<AudioListener>().enabled = false;
 		canBuild = enable;
 		canInteract = enable;
@@ -226,8 +227,9 @@ public class MissleEditor : MonoBehaviour {
 	public void CloseEditor () {
 		editorCamera.gameObject.SetActive (false);
 		enabled = false;
-		Platellery.game.HUD.SetActive (true);
-		audio.Stop ();
+		Game.game.flightHUD.SetActive (true);
+		Game.game.editorHUD.SetActive (false);
+		GetComponent<AudioSource>().Stop ();
 		Camera.main.GetComponent<AudioListener>().enabled = true;
 	}
 
@@ -269,8 +271,6 @@ public class MissleEditor : MonoBehaviour {
 				GUI.DrawTexture (new Rect (Screen.width - 70, 30 + 80 * i, 40, 40), buttons[i], ScaleMode.ScaleToFit, true, 0);
 			}
 			if (GUI.Button (new Rect (Screen.width / 3, Screen.height - 100, Screen.width / 3, 50), "LAUNCH!", skin.customStyles[0])) if (canInteract) LaunchMissle ();
-			if (GUI.Button (new Rect (20, 20, 200, 60), "BACK", skin.customStyles[0])) if (canInteract) CloseEditor ();
-			if (GUI.Button (new Rect (20, 100, 100, 30), "CLEAR", skin.customStyles[0])) if (canInteract) ResetEditor ();
 
 			if (hoveringID > -1) {
 				partModules[hoveringID].DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));

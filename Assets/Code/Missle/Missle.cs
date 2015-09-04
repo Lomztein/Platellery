@@ -7,6 +7,11 @@ public class Missle : MonoBehaviour {
 	public List<Module> modules;
 	public Transform velTransform;
 	public bool inEditor = true;
+	public Rigidbody rigidbody;
+
+	void Awake () {
+		rigidbody = GetComponent<Rigidbody> ();
+	}
 
 	void FixedUpdate () {
 		if (!rigidbody.isKinematic) 
@@ -25,7 +30,7 @@ public class Missle : MonoBehaviour {
 	public void Launch (bool fromSeperation) {
 		if (!fromSeperation) BroadcastMessage ("Activate", SendMessageOptions.DontRequireReceiver);
 		rigidbody.isKinematic = false;
-		Platellery.OnMissleSpawned (gameObject);
+		Game.OnMissleSpawned (gameObject);
 		CalculateMass ();
 	}
 
@@ -62,17 +67,17 @@ public class Missle : MonoBehaviour {
 	}
 
 	void OnDestroy () {
-		Platellery.game.activeMissles.Remove (gameObject);
+		Game.game.activeMissles.Remove (gameObject);
 	}
 
 	void OnGUI () {
-		if (Platellery.debugMode && Platellery.cameraController.followingMissle == transform) {
+		if (Game.debugMode && Game.cameraController.followingMissle == transform) {
 			GUI.Label (new Rect (20,300,Screen.width-20, Screen.height-300), 
 			    "Mass: " + rigidbody.mass.ToString () +
 			    "\nDrag: " + rigidbody.drag.ToString () + 
 			    "\nAltitude: " + Planet.current.atmosphere.PositionToAltitude (transform.position).ToString () +
 			    "\nSpeed: " + rigidbody.velocity.magnitude.ToString () + 
-			    "\nMissles: " + Platellery.game.activeMissles.Count + " / " + Platellery.game.maxMissles.ToString () + 
+			    "\nMissles: " + Game.game.activeMissles.Count + " / " + Game.game.maxMissles.ToString () + 
 			    "\nLocModules: " + modules.Count.ToString () + 
 				"\nGravity: " + Planet.current.GetPositionalGravity (transform.position).ToString ());
 		}

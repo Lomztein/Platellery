@@ -28,9 +28,11 @@ public class CameraController : MonoBehaviour {
 	private SpriteRenderer arrowRenderer;
 
 	public bool enableMovement = true;
+	public static CameraController cam;
 
 	// Use this for initialization
 	void Start () {
+		cam = this;
 		distanceToCenter = Vector3.Distance (Planet.current.center, transform.position + Vector3.back * transform.position.z);
 		startingDistance = distanceToCenter;
 		arrowRenderer = arrow.GetComponent<SpriteRenderer>();
@@ -103,7 +105,7 @@ public class CameraController : MonoBehaviour {
 	void EndMove () {
 		// Put movement in action
 		transform.position = Vector3.Lerp (transform.position, Vector3.Lerp (Planet.current.center + Vector3.back * 10, targetPos, zoomFactor), moveSpeed * Time.deltaTime);
-		camera.orthographicSize = Mathf.Lerp (camera.orthographicSize, targetSize, moveSpeed * Time.deltaTime); 
+		GetComponent<Camera>().orthographicSize = Mathf.Lerp (GetComponent<Camera>().orthographicSize, targetSize, moveSpeed * Time.deltaTime); 
 		transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Lerp (Quaternion.identity, targetRot , zoomFactor),moveSpeed * Time.deltaTime);
 	}
 
@@ -115,7 +117,7 @@ public class CameraController : MonoBehaviour {
 
 	public void MoveToPlanet (Planet newPlanet) {
 		focusPlanet = newPlanet;
-		distanceToCenter = focusPlanet.radius + camera.orthographicSize / 2;
+		distanceToCenter = focusPlanet.radius + GetComponent<Camera>().orthographicSize / 2;
 		targetPos = focusPlanet.center + Vector3.up * distanceToCenter + Vector3.one / 2 + Vector3.back * 10;
 		transform.position = targetPos;
 	}
