@@ -23,7 +23,7 @@ public class Tutorial : MonoBehaviour {
 		Game.game.editor.canInteract = true;
 		Game.game.editor.canBuild = true;
 		Game.cameraController.enableMovement = true;
-		Game.game.showGUI = true;
+		if (!Game.game.editorCamera.activeSelf) Game.game.flightHUD.SetActive (true);
 	}
 
 	public void ContinueTutorial () {
@@ -34,7 +34,6 @@ public class Tutorial : MonoBehaviour {
 		Game.game.editor.canInteract = false;
 		Game.game.editor.canBuild = false;
 		Game.cameraController.enableMovement = false;
-		Game.game.showGUI = false;
 		NextStep ();
 	}
 

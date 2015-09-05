@@ -234,12 +234,14 @@ public class MissleEditor : MonoBehaviour {
 	}
 
 	public void LaunchMissle () {
-		GameObject newMissle = (GameObject)Instantiate (currentMissle, new Vector3 (Planet.current.radius, Planet.current.radius * 2 + 0.25f + GetMissleBounds ().y, 0), Quaternion.identity);
-		Camera.main.GetComponent<CameraController>().FollowMissle (newMissle.transform);
-		Missle m = newMissle.GetComponent<Missle>();
-		m.Invoke ("InvokedLaunch",2);
-		CloseEditor ();
-		m.inEditor = false;
+		if (canInteract) {
+			GameObject newMissle = (GameObject)Instantiate (currentMissle, new Vector3 (Planet.current.radius, Planet.current.radius * 2 + 0.25f + GetMissleBounds ().y, 0), Quaternion.identity);
+			Camera.main.GetComponent<CameraController>().FollowMissle (newMissle.transform);
+			Missle m = newMissle.GetComponent<Missle>();
+			m.Invoke ("InvokedLaunch",2);
+			CloseEditor ();
+			m.inEditor = false;
+		}
 	}
 
 	Vector2 GetMissleBounds () {
@@ -270,7 +272,6 @@ public class MissleEditor : MonoBehaviour {
 
 				GUI.DrawTexture (new Rect (Screen.width - 70, 30 + 80 * i, 40, 40), buttons[i], ScaleMode.ScaleToFit, true, 0);
 			}
-			if (GUI.Button (new Rect (Screen.width / 3, Screen.height - 100, Screen.width / 3, 50), "LAUNCH!", skin.customStyles[0])) if (canInteract) LaunchMissle ();
 
 			if (hoveringID > -1) {
 				partModules[hoveringID].DrawModuleDescription (new Rect (20, Screen.height - 150, Screen.width / 3 - 40, 130));

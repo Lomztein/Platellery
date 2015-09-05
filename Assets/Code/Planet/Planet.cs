@@ -34,6 +34,7 @@ public class Planet : MonoBehaviour {
 	public static Planet current;
 		
 	public GameObject explosionPrefab;
+	private int startNonAirAmount;
 
 	// Use this for initialization
 	void Start () {
@@ -168,6 +169,8 @@ public class Planet : MonoBehaviour {
 				float angle	   = Angle.CalculateAngle (center, new Vector3 (x,y));
 				
 				tiles[x,y] = tile[generator.GetTile (x, y, distance, angle)];
+				if (tiles[x,y] != 0)
+					startNonAirAmount++;
 
 			}
 		}
@@ -204,6 +207,21 @@ public class Planet : MonoBehaviour {
 	}
 
 	void AddRandomizedProps () {
+
+	}
+
+	public int CalculateDestroyedPercentageInt () {
+		int a = 0;
+		for (int y = 0; y < tiles.GetLength (1); y++) {
+			for (int x = 0; x < tiles.GetLength (0); x++) {
+				if (tiles[x,y] != 0) {
+					a++;
+				}
+			}
+		}
+
+		float percentage = 1-(float)a/(float)startNonAirAmount;
+		return (int)Mathf.Clamp (percentage * 100f, 0, 100);
 
 	}
 

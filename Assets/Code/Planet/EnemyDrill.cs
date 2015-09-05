@@ -14,9 +14,12 @@ public class EnemyDrill : MonoBehaviour {
 	public List<GameObject> drills = new List<GameObject>();
 
 	public float health;
+	private bool isDead;
 
+	public bool spawnCannons;
 	public GameObject cannon;
 	public float cannonDist;
+	public List<GameObject> cannons = new List<GameObject>();
 
 	// Use this for initialization
 	void Start () {
@@ -24,22 +27,23 @@ public class EnemyDrill : MonoBehaviour {
 		x = planet.radius;
 
 		transform.position = new Vector3 (planet.radius, 0, -1);
+	
+		if (spawnCannons) {
+			float y = transform.position.y + 1f;
+			Vector3 pos = new Vector3 (transform.position.x, y, 0);
 
-		float y = transform.position.y + 1f;
-		Vector3 pos = new Vector3 (transform.position.x, y, 0);
-
-		Instantiate (cannon, pos + Vector3.right * cannonDist, Quaternion.Euler (0, 0, 180));
-		GameObject can = (GameObject)Instantiate (cannon, pos + Vector3.left * cannonDist, Quaternion.Euler (0, 0, 180));
-		can.GetComponent<Cannon> ().cannonTransform.localScale = new Vector3 (1, 1, 1);
-		can.GetComponent<Cannon> ().flipped = 1;
-		// Shit's confuzzling, but whatever.
-	}
-
-	void Update () {
+			GameObject can = (GameObject)Instantiate (cannon, pos + Vector3.right * cannonDist, Quaternion.Euler (0, 0, 180));
+			cannons.Add (can);
+			can = (GameObject)Instantiate (cannon, pos + Vector3.left * cannonDist, Quaternion.Euler (0, 0, 180));
+			cannons.Add (can);
+			can.GetComponent<Cannon> ().cannonTransform.localScale = new Vector3 (1, 1, 1);
+			can.GetComponent<Cannon> ().flipped = 1;
+			// Shit's confuzzling, but whatever.
+		}
 	}
 
 	void Drill () {
-		if (!Game.game.hasLost && !Game.game.hasWon) {
+		if (!Game.hasEnded && Game.game.hasStarted) {
 			planet.ChangeSingleTile (x,y, 0);
 			planet.ChangeSingleTile (x-1,y, 0);
 			y += 1;
@@ -56,8 +60,23 @@ public class EnemyDrill : MonoBehaviour {
 
 	public void TakeDamage (float d) {
 		health -= d;
-		if (health < 0) {
+		if (health < 0 && !isDead) {
+			isDead = true;
 			Game.WinTheGame ();
 		}
+	}
+
+	public IEnumerator ExplodeTheShitOutOfThisThing () {
+		int explosions = Random.Range (6,9);
+		for (int i = 0; i < explosions; i++) {
+			Vector3 pos = transform.position + Random.insideUnitSphere * 2f;
+			planet.CreateExplosion (pos.x, pos.y, Random.Range (4f, 7f), 50f);
+			yield return new WaitForSeconds (Random.Range (0.2f, 0.8f));
+		}
+		planet.CreateExplosion (transform.position.x, transform.position.y, 15, 50f);
+		foreach (GameObject obj in cannons) {
+			Destroy (obj);
+		}
+		Destroy (gameObject);
 	}
 }

@@ -88,7 +88,7 @@ public class Cannon : MonoBehaviour {
 	}
 
 	Transform FindTarget (float range) {
-		Collider[] nearby = Physics.OverlapSphere (transform.position, range, targetLayer);
+		Collider[] nearby = Physics.OverlapSphere (cannonTransform.position, range, targetLayer);
 
 		float dist = float.MaxValue;
 		Transform near = null;
@@ -96,7 +96,7 @@ public class Cannon : MonoBehaviour {
 
 			Ray ray = new Ray (muzzle.position, (nearby[i].transform.position - muzzle.position).normalized);
 
-			float locDist = Vector3.Distance (nearby [i].transform.position, transform.position);
+			float locDist = Vector3.Distance (nearby [i].transform.position, cannonTransform.position);
 			if (locDist < dist && !Physics.Raycast (ray, range, solidLayer)) {
 				dist = locDist;
 				near = nearby [i].transform;

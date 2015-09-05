@@ -16,13 +16,12 @@ public class Game : MonoBehaviour {
 
 	public static Game game;
 
-	public bool hasWon;
-	public bool hasLost;
 	public bool hasStarted;
+	public static bool hasEnded;
 
 	public GUISkin skin;
 
-	public static bool debugMode = true;
+	public static bool debugMode = false;
 	public GameObject editorCamera;
 	public MissleEditor editor;
 	public static CameraController cameraController;
@@ -33,6 +32,10 @@ public class Game : MonoBehaviour {
 	public Slider musicSlider;
 	public Slider soundSlider;
 
+	public GameObject winGameMenu;
+	public GameObject lostGameMenu;
+	public Text winGameText;
+
 	public static float soundLevel = 1;
 	public static float musicLevel = 1;
 
@@ -41,7 +44,6 @@ public class Game : MonoBehaviour {
 	public GameObject editorHUD;
 
 	public GameObject startMenu;
-	public bool showGUI;
 
 	// Use this for initialization
 	void Start () {
@@ -88,14 +90,19 @@ public class Game : MonoBehaviour {
 	}
 
 	public static void WinTheGame () {
-		game.hasWon = true;
-		Pause ();
+		game.winGameMenu.SetActive (true);
+		cameraController.DisableInteraction ();
+		cameraController.MoveToPosition (game.drill.transform.position, 180f, 10f);
+		game.drill.StartCoroutine (game.drill.ExplodeTheShitOutOfThisThing ());
+		game.winGameText.text = "You've beaten the game with only " + Planet.current.CalculateDestroyedPercentageInt ().ToString () + " percent of the planet destroyed!";
+		hasEnded = true;
 	}
 
 	public static void LooseTheGame () {
+		game.lostGameMenu.SetActive (true);
+		cameraController.MoveToPosition (game.drill.transform.position, 0, Planet.current.radius * 2f);
 		game.StartCoroutine ("ExploderizePlanet");
-		game.hasLost = true;
-		Pause ();
+		hasEnded = true;
 	}
 
 	public static void Pause () {
@@ -108,7 +115,12 @@ public class Game : MonoBehaviour {
 		Game.game.pauseMenu.SetActive (false);
 	}
 
+	public void QuitGame () {
+		Application.Quit ();
+	}
+
 	public void RestartGame () {
+		hasEnded = false;
 		Application.LoadLevel (Application.loadedLevel);
 		Time.timeScale = 1f;
 	}
@@ -124,25 +136,13 @@ public class Game : MonoBehaviour {
 		// HUD.SetActive (true);
 		cameraController.enableMovement = true;
 		startMenu.SetActive (false);
-		if (!withTutorial) showGUI = true;
+		if (!withTutorial) {
+			flightHUD.SetActive (true);
+		}
 		hasStarted = true;
 		if (withTutorial) tutorial.AskTutorial ();
 	}
 
 	public void OpenCredits () {
-	}
-
-	void OnGUI () {
-		if (showGUI) {
-			GUI.skin = skin;
-			if (hasWon) {
-				if (GUI.Button (new Rect (Screen.width / 3, 300, Screen.width / 3, 100), "YOU ARE VICTORIOUS.\nRESET?"))
-					Application.LoadLevel (Application.loadedLevel);
-			}
-			if (hasLost) {
-				if (GUI.Button (new Rect (Screen.width / 3, 300, Screen.width / 3, 100), "YOU HAVE FAILED.\nRESTART?"))
-					Application.LoadLevel (Application.loadedLevel);
-			}
-		}
 	}
 }

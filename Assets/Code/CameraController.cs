@@ -91,7 +91,6 @@ public class CameraController : MonoBehaviour {
 		targetPos += targetRot * (movement * (distanceToCenter / startingDistance)) * zoomFactor;
 		targetSize = Mathf.Lerp (Planet.current.radius + 10, 15, zoomFactor);
 		EndMove ();
-
 	}
 
 	public void ForceMove (Vector3 movement, float distance) {
@@ -100,6 +99,15 @@ public class CameraController : MonoBehaviour {
 		targetPos += targetRot * (movement * (distanceToCenter / startingDistance)) * zoomFactor;
 		targetSize = Mathf.Lerp (Planet.current.radius + 10, 15, zoomFactor);
 		EndMove ();
+	}
+
+	public void DisableInteraction () {
+		enableMovement = false;
+		followingMissle = null;
+	}
+
+	public void EnableInteraction () {
+		enableMovement = true;
 	}
 
 	void EndMove () {
