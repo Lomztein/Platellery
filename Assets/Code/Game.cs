@@ -19,6 +19,9 @@ public class Game : MonoBehaviour {
 	public bool hasStarted;
 	public static bool hasEnded;
 
+	public static int currentStage = -1;
+	public GameObject[] stageIntros;
+
 	public GUISkin skin;
 
 	public static bool debugMode = false;
@@ -90,19 +93,70 @@ public class Game : MonoBehaviour {
 	}
 
 	public static void WinTheGame () {
-		game.winGameMenu.SetActive (true);
 		cameraController.DisableInteraction ();
 		cameraController.MoveToPosition (game.drill.transform.position, 180f, 10f);
 		game.drill.StartCoroutine (game.drill.ExplodeTheShitOutOfThisThing ());
+
+		game.winGameMenu.SetActive (true);
 		game.winGameText.text = "You've beaten the game with only " + Planet.current.CalculateDestroyedPercentageInt ().ToString () + " percent of the planet destroyed!";
 		hasEnded = true;
 	}
 
+	public static void WinTheStage () {
+		cameraController.DisableInteraction ();
+		cameraController.MoveToPosition (new Vector3 (Planet.current.radius, 0f, 0f), 180f, 10f);
+		game.drill.StartCoroutine (game.drill.ExplodeTheShitOutOfThisThing ());
+		game.Invoke ("ContinueNextStage", 5f);
+	}
+
+	public void ContinueNextStage () {
+		currentStage++;
+		cameraController.MoveToPosition (Planet.current.center, 0f, Planet.current.radius);
+		stageIntros[currentStage].SetActive (true);
+		hasEnded = true;
+		SendMessage ("Stage" + currentStage.ToString (), SendMessageOptions.DontRequireReceiver);
+	}
+
+	public void RespawnDrill () {
+		game.drill.gameObject.SetActive (true);
+		game.drill.health = 500f;
+		game.drill.isDead = false;
+	}
+
+	public void StartStage () {
+		stageIntros[currentStage].SetActive (false);
+		cameraController.MoveToPosition (new Vector3 (planet.radius, planet.radius * 2f, 0), 0f, 15f);
+		cameraController.EnableInteraction ();
+		hasEnded = false;
+	}
+
 	public static void LooseTheGame () {
 		game.lostGameMenu.SetActive (true);
-		cameraController.MoveToPosition (game.drill.transform.position, 0, Planet.current.radius * 2f);
+		cameraController.DisableInteraction ();
+		cameraController.MoveToPosition (Planet.current.center, 0, Planet.current.radius);
 		game.StartCoroutine ("ExploderizePlanet");
 		hasEnded = true;
+	}
+
+	void Stage0 () {
+		RespawnDrill ();
+		drill.SpawnTurrets ();
+	}
+
+	void Stage1 () {
+		MissleEditor.current.TogglePartButton (2);
+		RespawnDrill ();
+		drill.SpawnTurrets ();
+	}
+
+	void Stage2 () {
+		MissleEditor.current.TogglePartButton (7);
+		RespawnDrill ();
+		drill.SpawnTurrets ();
+	}
+
+	void Stage3 () {
+		WinTheGame ();
 	}
 
 	public static void Pause () {

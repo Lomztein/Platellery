@@ -74,7 +74,8 @@ public class Cannon : MonoBehaviour {
 		} else if (Vector3.Distance (transform.position, target.position) > range) {
 			target = null;
 		} else {
-			if (canFire && Vector3.Distance (cannonTransform.eulerAngles, startPos.eulerAngles) < 10f) {
+			/* && Vector3.Distance (cannonTransform.eulerAngles, startPos.eulerAngles*/
+			if (canFire) {
 				StartCoroutine (Fire ());
 			}
 

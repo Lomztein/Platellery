@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class MissleEditor : MonoBehaviour {
 
@@ -11,7 +12,13 @@ public class MissleEditor : MonoBehaviour {
 	public GameObject misslePrefab;
 	public GameObject currentMissle;
 
+	public Transform moduleButtonStart;
+	public GameObject moduleButtonPrefab;
+	public float moduleButtonDistance;
+	public RectTransform buttonParent;
+
 	public List<GameObject> currentParts = new List<GameObject>();
+	public List<Button> currentButtons = new List<Button>();
 
 	public int placingPartID;
 	public bool canPlacePlacingPart;
@@ -207,10 +214,23 @@ public class MissleEditor : MonoBehaviour {
 	}
 
 	void InitializePartButtons () {
-		buttons = new Texture2D[parts.Length];
-		for (int i = 0; i < buttons.Length; i++) {
-			buttons[i] = parts[i].transform.GetChild (0).GetComponent<SpriteRenderer>().sprite.texture;
+		for (int i = 0; i < parts.Length; i++) {
+			GameObject butt = (GameObject)Instantiate (moduleButtonPrefab, moduleButtonStart.position + Vector3.down * moduleButtonDistance * i, Quaternion.identity);
+			butt.transform.FindChild ("Image").GetComponent<Image>().sprite = parts[i].transform.GetChild (0).GetComponent<SpriteRenderer>().sprite;
+			butt.transform.SetParent (buttonParent, true);
+			AddListenerToModuleButton (butt.GetComponent<Button>(), i);
+			currentButtons.Add (butt.GetComponent<Button>());
 		}
+	}
+
+	public void TogglePartButton (int index) {
+		currentButtons[index].interactable = !currentButtons[index].interactable;
+	}
+
+	void AddListenerToModuleButton (Button button, int i) {
+		button.onClick.AddListener (() => {
+			GetFocusPart (i);
+		});
 	}
 
 	public void OpenEditor (bool enable) {
@@ -262,15 +282,10 @@ public class MissleEditor : MonoBehaviour {
 	void OnGUI () {
 		GUI.skin = skin;
 		if (editorCamera.gameObject.activeInHierarchy) {
-			for (int i = 0; i < buttons.Length; i++) {
+			for (int i = 0; i < parts.Length; i++) {
 				Rect r = new Rect (Screen.width - 80, 20 + 80 * i, 60, 60);
-
-				if (GUI.Button (r, "", skin.customStyles[0])) 
-					if (canInteract) GetFocusPart (i);
 				if (r.Contains (new Vector3 (Input.mousePosition.x, -Input.mousePosition.y + Screen.height, 0)))
 					hoveringID = i;
-
-				GUI.DrawTexture (new Rect (Screen.width - 70, 30 + 80 * i, 40, 40), buttons[i], ScaleMode.ScaleToFit, true, 0);
 			}
 
 			if (hoveringID > -1) {

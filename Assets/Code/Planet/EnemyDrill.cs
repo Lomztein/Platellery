@@ -14,9 +14,8 @@ public class EnemyDrill : MonoBehaviour {
 	public List<GameObject> drills = new List<GameObject>();
 
 	public float health;
-	private bool isDead;
+	public bool isDead;
 
-	public bool spawnCannons;
 	public GameObject cannon;
 	public float cannonDist;
 	public List<GameObject> cannons = new List<GameObject>();
@@ -27,19 +26,19 @@ public class EnemyDrill : MonoBehaviour {
 		x = planet.radius;
 
 		transform.position = new Vector3 (planet.radius, 0, -1);
-	
-		if (spawnCannons) {
-			float y = transform.position.y + 1f;
-			Vector3 pos = new Vector3 (transform.position.x, y, 0);
+	}
 
-			GameObject can = (GameObject)Instantiate (cannon, pos + Vector3.right * cannonDist, Quaternion.Euler (0, 0, 180));
-			cannons.Add (can);
-			can = (GameObject)Instantiate (cannon, pos + Vector3.left * cannonDist, Quaternion.Euler (0, 0, 180));
-			cannons.Add (can);
-			can.GetComponent<Cannon> ().cannonTransform.localScale = new Vector3 (1, 1, 1);
-			can.GetComponent<Cannon> ().flipped = 1;
-			// Shit's confuzzling, but whatever.
-		}
+	public void SpawnTurrets () {
+		float y = transform.position.y + 1f;
+		Vector3 pos = new Vector3 (transform.position.x, y, 0);
+		
+		GameObject can = (GameObject)Instantiate (cannon, pos + Vector3.right * cannonDist, Quaternion.Euler (0, 0, 180));
+		cannons.Add (can);
+		can = (GameObject)Instantiate (cannon, pos + Vector3.left * cannonDist, Quaternion.Euler (0, 0, 180));
+		cannons.Add (can);
+		can.GetComponent<Cannon> ().cannonTransform.localScale = new Vector3 (1, 1, 1);
+		can.GetComponent<Cannon> ().flipped = 1;
+		// Shit's confuzzling, but whatever.
 	}
 
 	void Drill () {
@@ -62,7 +61,7 @@ public class EnemyDrill : MonoBehaviour {
 		health -= d;
 		if (health < 0 && !isDead) {
 			isDead = true;
-			Game.WinTheGame ();
+			Game.WinTheStage ();
 		}
 	}
 
@@ -77,6 +76,6 @@ public class EnemyDrill : MonoBehaviour {
 		foreach (GameObject obj in cannons) {
 			Destroy (obj);
 		}
-		Destroy (gameObject);
+		gameObject.SetActive (false);
 	}
 }
